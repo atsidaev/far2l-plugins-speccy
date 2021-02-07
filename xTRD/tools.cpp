@@ -1,6 +1,6 @@
 #include <windows.h>
-#include "plugin.hpp"
-
+#include "pluginold.hpp"
+using namespace oldfar;
 #include "tools.hpp"
 #include "types.hpp"
 #include "lang.hpp"
@@ -40,7 +40,7 @@ char* trim(char *str)
 {
   int i,j,len;
 
-  len = lstrlen(str);
+  len = strlen(str);
 
   for(i = len-1; i>=0; i--)
     if(str[i] != ' ') break;
@@ -58,39 +58,39 @@ char* trim(char *str)
 
 char* truncPathStr(char* newName, const char* name, int noChars)
 {
-  int size = lstrlen(name);
+  int size = strlen(name);
   if(size > noChars)
   {
-    if(name[1] == ':' && name[2] == '\\')
+    if(name[1] == ':' && name[2] == '/')
     {
-      lstrcpyn(newName, name, 4);
-      lstrcat(newName, "...");
-      lstrcat(newName, name+size-noChars+6);
+      strncpy(newName, name, 4);
+      strcat(newName, "...");
+      strcat(newName, name+size-noChars+6);
     }
     else
     {
-      lstrcpy(newName, "...");
-      lstrcat(newName, name+size-noChars+3);
+      strcpy(newName, "...");
+      strcat(newName, name+size-noChars+3);
     }
   }
   else
-    lstrcpy(newName, name);
+    strcpy(newName, name);
   return newName;
 }
 
 void addEndSlash(char *path)
 {
-  int length=lstrlen(path);
-  if(length == 0 || path[length-1] != '\\') lstrcat(path,"\\");
+  int length=strlen(path);
+  if(length == 0 || path[length-1] != '/') strcat(path,"/");
 }
 
 void quoteSpaceOnly(char *str)
 {
   char *tmp = str;
   char to[300];
-  int len = lstrlen(str);
+  int len = strlen(str);
 
-  CopyMemory(to, str, len);
+  memcpy(to, str, len);
   *(to + len) = 0;
 
   while(*tmp)
@@ -98,7 +98,7 @@ void quoteSpaceOnly(char *str)
     if(*tmp == ' ')
     {
       *to = '"';
-      CopyMemory(to + 1, str, len);
+      memcpy(to + 1, str, len);
       *(to + len + 1) = '"';
       *(to + len + 2) = 0;
       break;
@@ -106,7 +106,7 @@ void quoteSpaceOnly(char *str)
     ++tmp;
   }
 
-  lstrcpy(str, to);
+  strcpy(str, to);
 }
 
 bool isValidChar(BYTE ch)
@@ -129,11 +129,34 @@ bool isValidFolderChar(BYTE ch)
   return true;
 }
 
-int memcmp(const BYTE* p1, const BYTE* p2, int maxlen)
+/*int memcmp(const BYTE* p1, const BYTE* p2, int maxlen)
 {
   if(!maxlen) return(0);
   while(maxlen-- && *p1 == *p2) { p1++; p2++; }
   return(*p1 - *p2);
+}*/
+
+int strcmpi(const char* p1, const char* p2)
+{
+  char ch1, ch2;
+  
+  while (true)
+  {
+    ch1 = (char)(long)((char*)*p1++);
+    ch2 = (char)(long)((char*)*p2++);
+    
+    if ((ch1 == 0 || ch2 == 0) && ch1 != ch2)
+      break;
+    
+    if (ch1 >= 'a' && ch1 <= 'z')
+      ch1 -= 'a' - 'A';
+    
+    if (ch2 >= 'a' && ch2 <= 'z')
+      ch2 -= 'a' - 'A';
+    
+    if(ch1 != ch2) break;
+  }
+  return (ch1 - ch2);
 }
 
 int memcmpi(const char* p1, const char* p2, int maxlen)
@@ -143,8 +166,15 @@ int memcmpi(const char* p1, const char* p2, int maxlen)
   
   while(maxlen--)
   {
-    ch1 = (char)CharUpper((char*)*p1++);
-    ch2 = (char)CharUpper((char*)*p2++);
+    ch1 = (char)(long)((char*)*p1++);
+    ch2 = (char)(long)((char*)*p2++);
+    
+    if (ch1 >= 'a' && ch1 <= 'z')
+      ch1 -= 'a' - 'A';
+    
+    if (ch2 >= 'a' && ch2 <= 'z')
+      ch2 -= 'a' - 'A';
+    
     if(ch1 != ch2) break;
   }
   return (ch1 - ch2);
@@ -155,7 +185,7 @@ char *str_r_chr(const char *s, int c)
   const char *ss;
   int         i;
 
-  for(i = lstrlen( s ) + 1, ss = s+i; i; i--)
+  for(i = strlen( s ) + 1, ss = s+i; i; i--)
     if( *(--ss) == (char)c )  return( (char *)ss );
   return( 0 );
 }
@@ -259,7 +289,7 @@ char* make8x3name(const char* source, char* dest)
 
 char* getMsg(int msgId)
 {
-  return(startupInfo.GetMsg(startupInfo.ModuleNumber, msgId));
+  return((char*)startupInfo.GetMsg(startupInfo.ModuleNumber, msgId));
 }
 
 void initDialogItems(InitDialogItem *init, FarDialogItem *item, int noItems)
@@ -272,12 +302,12 @@ void initDialogItems(InitDialogItem *init, FarDialogItem *item, int noItems)
     item[i].X2            = init[i].X2;
     item[i].Y2            = init[i].Y2;
     item[i].Focus         = init[i].Focus;
-    item[i].Selected      = init[i].Selected;
+    item[i].Reserved      = init[i].Selected;
     item[i].Flags         = init[i].Flags;
     item[i].DefaultButton = init[i].DefaultButton;
-    if((unsigned int)init[i].Data < 2000)
-      lstrcpy(item[i].Data, getMsg((unsigned int)init[i].Data));
+    if((unsigned long)init[i].Data < 2000)
+      strcpy(item[i].Data, getMsg((unsigned long)init[i].Data));
     else
-      lstrcpy(item[i].Data, init[i].Data);
+      strcpy(item[i].Data, init[i].Data);
   }
 }

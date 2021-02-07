@@ -1,10 +1,11 @@
 #include <windows.h>
 #include "filer.hpp"
 #include "fdi.hpp"
+#include "../../../shared/widestring.hpp"
 
-Filer::Filer(const char* fileName)
+FilerFDI::FilerFDI(const char* fileName)
 {
-  lstrcpy(fName, fileName);
+  strcpy(fName, fileName);
   open();
 
   DWORD noBytesRead;
@@ -14,7 +15,7 @@ Filer::Filer(const char* fileName)
   writeProtection = hFDI.writeProtection;
   maxSec = 16*hFDI.noCyls*hFDI.noHeads;
   secs = new DWORD[maxSec];
-  ZeroMemory(secs, maxSec);
+  memset(secs, 0, maxSec);
   
   SetFilePointer(hostFile, sizeof(FDIHdr)+hFDI.extraInfoSize, NULL, FILE_BEGIN);
   
@@ -34,17 +35,17 @@ Filer::Filer(const char* fileName)
   close();
 }
 
-Filer::~Filer()
+FilerFDI::~FilerFDI()
 {
   delete[] secs;
 }
 
-bool Filer::open(void)
+bool FilerFDI::open(void)
 {
   DWORD mode = GENERIC_READ | GENERIC_WRITE;
-  DWORD attr = GetFileAttributes(fName);
+  DWORD attr = GetFileAttributes(_W(fName).c_str());
   if(attr & FILE_ATTRIBUTE_READONLY) mode = GENERIC_READ;
-  hostFile = CreateFile(fName,
+  hostFile = CreateFile(_W(fName).c_str(),
                         mode,
                         FILE_SHARE_READ | FILE_SHARE_WRITE,
                         NULL,
@@ -54,14 +55,14 @@ bool Filer::open(void)
   return (hostFile != INVALID_HANDLE_VALUE);
 }
 
-bool Filer::close(void)
+bool FilerFDI::close(void)
 {
   return CloseHandle(hostFile);
 }
 
-bool Filer::read(BYTE trk, BYTE sec, BYTE* buf)
+bool FilerFDI::read(BYTE trk, BYTE sec, BYTE* buf)
 {
-  ZeroMemory(buf, sectorSize);
+  memset(buf, 0, sectorSize);
   if(!secs[16*trk+sec] || 16*trk+sec >= maxSec) return false;
   SetFilePointer(hostFile, secs[16*trk+sec], NULL, FILE_BEGIN);
   DWORD noBytesRead;
@@ -69,7 +70,7 @@ bool Filer::read(BYTE trk, BYTE sec, BYTE* buf)
   return (noBytesRead == sectorSize);
 }
 
-bool Filer::write(BYTE trk, BYTE sec, BYTE* buf)
+bool FilerFDI::write(BYTE trk, BYTE sec, BYTE* buf)
 {
   if(!secs[16*trk+sec] || 16*trk+sec >= maxSec) return false;
   SetFilePointer(hostFile, secs[16*trk+sec], NULL, FILE_BEGIN);
@@ -78,16 +79,16 @@ bool Filer::write(BYTE trk, BYTE sec, BYTE* buf)
   return (noBytesWritten == sectorSize);
 }
 
-bool Filer::isProtected(void)
+bool FilerFDI::isProtected(void)
 {
-  DWORD attr = GetFileAttributes(fName);
+  DWORD attr = GetFileAttributes(_W(fName).c_str());
   return (writeProtection || attr & FILE_ATTRIBUTE_READONLY);
 }
 
-bool Filer::protect(bool on)
+bool FilerFDI::protect(bool on)
 {
   if(!on) 
-    if(!SetFileAttributes(fName, FILE_ATTRIBUTE_NORMAL))
+    if(!SetFileAttributes(_W(fName).c_str(), FILE_ATTRIBUTE_NORMAL))
       return false;
 
   if(!open()) return false;

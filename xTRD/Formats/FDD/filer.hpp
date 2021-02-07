@@ -1,11 +1,11 @@
 #ifndef filer_hpp
 #define filer_hpp
 
-class Filer
+class FilerFDD
 {
   public:
-    Filer(const char* fileName);
-    ~Filer();
+    FilerFDD(const char* fileName);
+    ~FilerFDD();
     
     bool open (void);
     bool close(void);

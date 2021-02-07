@@ -1,5 +1,6 @@
 #include <windows.h>
-#include "..\fmt.hpp"
+#include "../fmt.hpp"
+#include "../../../shared/widestring.hpp"
 
 const unsigned short sectorSize = 0x100;
 
@@ -9,13 +10,13 @@ struct ImageInfo
   HANDLE hostFile;
 };
 
-bool WINAPI _export isImage(const char* fileName, const BYTE* data, int size)
+bool WINAPI _export trd_isImage(const char* fileName, const BYTE* data, int size)
 {
   if(size < 0x8E8) return false;
   if(data[0x8E7] != 0x10) return false;
 
   WIN32_FIND_DATA findData;
-  HANDLE hostFile = FindFirstFile(fileName, &findData);
+  HANDLE hostFile = FindFirstFile(_W((char*)fileName).c_str(), &findData);
   if(hostFile == INVALID_HANDLE_VALUE) return false;
   FindClose(hostFile);
 
@@ -24,32 +25,33 @@ bool WINAPI _export isImage(const char* fileName, const BYTE* data, int size)
   return true;
 }
 
-HANDLE WINAPI _export init(const char* fileName)
+HANDLE WINAPI _export trd_init(const char* fileName)
 {
   ImageInfo* ii = new ImageInfo;
-  lstrcpy(ii->fileName, fileName);
+  strcpy(ii->fileName, fileName);
   return (HANDLE)ii;
 }
 
-void WINAPI _export cleanup(HANDLE h)
+bool WINAPI _export trd_cleanup(HANDLE h)
 {
   ImageInfo* ii = (ImageInfo*)h;
   delete ii;
+  return 1;
 }
 
-bool WINAPI _export reload(HANDLE h) { return true; }
+bool WINAPI _export trd_reload(HANDLE h) { return true; }
 
-bool WINAPI _export open(HANDLE h)
+bool WINAPI _export trd_open(HANDLE h)
 {
   ImageInfo* ii = (ImageInfo*)h;
 
   DWORD mode = GENERIC_READ | GENERIC_WRITE;
 
-  DWORD attr = GetFileAttributes(ii->fileName);
+  DWORD attr = GetFileAttributes(_W(ii->fileName).c_str());
 
   if(attr & FILE_ATTRIBUTE_READONLY) mode = GENERIC_READ;
   
-  ii->hostFile = CreateFile(ii->fileName,
+  ii->hostFile = CreateFile(_W(ii->fileName).c_str(),
                             mode,
                             FILE_SHARE_READ | FILE_SHARE_WRITE,
                             NULL,
@@ -59,17 +61,17 @@ bool WINAPI _export open(HANDLE h)
   return (ii->hostFile != INVALID_HANDLE_VALUE);
 }
 
-bool WINAPI _export close(HANDLE h)
+bool WINAPI _export trd_close(HANDLE h)
 {
   ImageInfo* ii = (ImageInfo*)h;
   return CloseHandle(ii->hostFile);
 }
 
-bool WINAPI _export read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
+bool WINAPI _export trd_read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
   ImageInfo* ii = (ImageInfo*)h;  
 
-  ZeroMemory(buf, sectorSize);
+  memset(buf, 0, sectorSize);
   DWORD fileSize = GetFileSize(ii->hostFile, NULL);
   if(fileSize <= sectorSize*(16U*trk+sec)) return false;
   
@@ -81,7 +83,7 @@ bool WINAPI _export read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
   return (noBytesRead == sectorSize);
 }
 
-bool WINAPI _export write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
+bool WINAPI _export trd_write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
   ImageInfo* ii = (ImageInfo*)h;
   
@@ -96,27 +98,27 @@ bool WINAPI _export write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
   return (noBytesWritten == sectorSize);
 }
 
-char* WINAPI _export getFormatName(void)
+char* WINAPI _export trd_getFormatName(void)
 {
   static char* name = "TRD";
   return name;
 }
 
-bool WINAPI _export isProtected(HANDLE h)
+bool WINAPI _export trd_isProtected(HANDLE h)
 {
   ImageInfo* ii   = (ImageInfo*)h;
-  DWORD      attr = GetFileAttributes(ii->fileName);
+  DWORD      attr = GetFileAttributes(_W(ii->fileName).c_str());
   return (attr & FILE_ATTRIBUTE_READONLY);
 }
 
-bool WINAPI _export protect(HANDLE h, bool on)
+bool WINAPI _export trd_protect(HANDLE h, bool on)
 {
   ImageInfo* ii   = (ImageInfo*)h;
-  DWORD      attr = GetFileAttributes(ii->fileName);
+  DWORD      attr = GetFileAttributes(_W(ii->fileName).c_str());
   if(on)
     attr |= FILE_ATTRIBUTE_READONLY;
   else
     attr &= ~FILE_ATTRIBUTE_READONLY;
 
-  return (SetFileAttributes(ii->fileName, attr));
+  return (SetFileAttributes(_W(ii->fileName).c_str(), attr));
 }

@@ -3,6 +3,8 @@
 
 const unsigned short sectorSize = 0x100;
 
+#pragma pack(1)
+
 struct ImageHdr
 {
   char id[2];
@@ -47,5 +49,7 @@ struct SecHdr
   BYTE flag;
   BYTE crc;
 };
+
+#pragma pack()
 
 #endif

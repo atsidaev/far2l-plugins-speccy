@@ -1,10 +1,12 @@
 #include <windows.h>
-#include "plugin.hpp"
+#include "pluginold.hpp"
 
 #include "manager.hpp"
 #include "types.hpp"
 #include "tools.hpp"
 #include "lang.hpp"
+
+#include "widestring.hpp"
 
 extern PluginStartupInfo startupInfo;
 extern Options           op;
@@ -75,8 +77,8 @@ bool Manager::isDiskFull(int noAddFiles, int noSecs)
   {
     char str1[80];
     char str2[80];
-    wsprintf(str1, getMsg(MFileSize), noSecs);
-    wsprintf(str2, getMsg(MFree), diskInfo.noFreeSecs);
+    sprintf(str1, getMsg(MFileSize), noSecs);
+    sprintf(str2, getMsg(MFree), diskInfo.noFreeSecs);
     char *msgItems[4];
     msgItems[0] = getMsg(MDiskFull);
     msgItems[1] = str1;
@@ -93,7 +95,7 @@ ExitCode Manager::writeFile(const SCLHdr& h, HANDLE file, BYTE folderNum)
   if(isDiskFull(1, h.noSecs)) return CANCEL;
   
   FileHdr hdr;
-  CopyMemory(&hdr, &h, sizeof(SCLHdr));
+  memcpy(&hdr, &h, sizeof(SCLHdr));
   hdr.trk = diskInfo.firstFreeTrk;
   hdr.sec = diskInfo.firstFreeSec;
   
@@ -121,15 +123,15 @@ ExitCode Manager::writeFile(const SCLHdr& h, HANDLE file, BYTE folderNum)
       msgItems[12] = getMsg(MCancel);
       
       BYTE name[13] = "            ";
-      makeTrDosName(name, hdr, 12);
-      msgItems[2] = name;
+      makeTrDosName((char*)name, hdr, 12);
+      msgItems[2] = (char*)name;
       
       char source[50];
       char dest[50];
-      wsprintf(source, getMsg(MSource),
+      sprintf(source, getMsg(MSource),
                (int)hdr.size,
                hdr.noSecs);
-      wsprintf(dest,   getMsg(MDestination),
+      sprintf(dest,   getMsg(MDestination),
                (int)files[fNum].size,
                files[fNum].noSecs);
       
@@ -167,7 +169,7 @@ ExitCode Manager::writeFile(const SCLHdr& h, HANDLE file, BYTE folderNum)
     while(noSecs--)
     {
       BYTE sector[sectorSize];
-      ZeroMemory(&sector, sizeof(sector));
+      memset(&sector, 0, sizeof(sector));
       DWORD noBytesRead;
       ReadFile(file, sector, sectorSize, &noBytesRead, NULL);
       write(trk, sec, sector);
@@ -198,7 +200,7 @@ ExitCode Manager::putFile(char* fileName, BYTE folderNum, bool move)
   if(!keepSilence)
     messageBox(0, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 0);
 
-  HANDLE file = CreateFile(fileName,
+  HANDLE file = CreateFile(_W(fileName).c_str(),
                            GENERIC_READ,
                            FILE_SHARE_READ | FILE_SHARE_WRITE,
                            NULL,
@@ -228,7 +230,7 @@ ExitCode Manager::putFile(char* fileName, BYTE folderNum, bool move)
     ReadFile(file, &hoHdr, sizeof(HoHdr), &noBytesRead, 0);
 
     SCLHdr h;
-    CopyMemory(&h, &hoHdr, sizeof(SCLHdr));
+    memcpy(&h, &hoHdr, sizeof(SCLHdr));
     h.noSecs = hoHdr.noSecs;
     exitCode = writeFile(h, file, folderNum);
   }
@@ -259,7 +261,7 @@ ExitCode Manager::putFile(char* fileName, BYTE folderNum, bool move)
     if(!no_files) no_files = 1;
     
     char name[11] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', 0, 0};
-    if(no_files > 1) FillMemory(name, 8, '_');
+    if(no_files > 1) memset(name, '_', 8);
     
     make8x3name(pointToName(fileName), name);
     for(int fNum = 0; fNum < no_files; ++fNum)
@@ -269,12 +271,12 @@ ExitCode Manager::putFile(char* fileName, BYTE folderNum, bool move)
       if(no_files > 1)
       {
         char num[5];
-        wsprintf(num, "_%03d", fNum);
-        CopyMemory(name + 4, num, 4);
+        sprintf(num, "_%03d", fNum);
+        memcpy(name + 4, num, 4);
       }
       
-      CopyMemory(hdr.name, name, 8);
-      CopyMemory(&hdr.type, name+8,  3);
+      memcpy(hdr.name, name, 8);
+      memcpy(&hdr.type, name+8,  3);
       if(sizeInSec > 255)
       {
         hdr.noSecs = 255;
@@ -297,7 +299,7 @@ ExitCode Manager::putFile(char* fileName, BYTE folderNum, bool move)
   }
   
   CloseHandle(file);
-  if(exitCode == OK && move) DeleteFile(fileName);
+  if(exitCode == OK && move) DeleteFile(_W(fileName).c_str());
   return exitCode;
 }
 
@@ -321,7 +323,7 @@ bool Manager::makeFolder(char* folderName, BYTE folderNum)
     return false;
   }
 
-  FillMemory(folders[noFolders], 11, ' ');
+  memset(folders[noFolders], ' ', 11);
   
   make8x3name(folderName, folders[noFolders]);
   folderMap[noFolders]    = folderNum;
@@ -339,7 +341,7 @@ ExitCode Manager::putFolder(char* folderName, BYTE folderNum, bool move)
   for(; fNum < noFolders; ++fNum)
   {
     if(folderMap[fNum] != folderNum) continue;
-    if(!lstrcmp(pcFolders[fNum], name)) break;
+    if(!strcmp(pcFolders[fNum], name)) break;
   }
   if(fNum == noFolders)
   {
@@ -348,26 +350,26 @@ ExitCode Manager::putFolder(char* folderName, BYTE folderNum, bool move)
   }
 
   char mask[300];
-  lstrcpy(mask, folderName);
+  strcpy(mask, folderName);
   addEndSlash(mask);
-  lstrcat(mask, "*.*");
+  strcat(mask, "*.*");
 
   WIN32_FIND_DATA data;
-  HANDLE h = FindFirstFile(mask, &data);
+  HANDLE h = FindFirstFile(_W(mask).c_str(), &data);
   if(h == INVALID_HANDLE_VALUE) return OK;
 
   ExitCode exitCode = OK;
   do
   {
-    if(!lstrcmp(data.cFileName, ".")) continue;
-    if(!lstrcmp(data.cFileName, "..")) continue;
+    if(!strcmp(_N(data.cFileName).c_str(), ".")) continue;
+    if(!strcmp(_N(data.cFileName).c_str(), "..")) continue;
 
     ExitCode code;
     
     char fullName[300];
-    lstrcpy(fullName, folderName);
+    strcpy(fullName, folderName);
     addEndSlash(fullName);
-    lstrcat(fullName, data.cFileName);
+    strcat(fullName, _N(data.cFileName).c_str());
     
     if(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
       code = putFolder(fullName, fNum+1, move);
@@ -381,7 +383,7 @@ ExitCode Manager::putFolder(char* folderName, BYTE folderNum, bool move)
   FindClose(h);
 
   if(move && exitCode == OK)
-    if(!RemoveDirectory(folderName)) return SKIP;
+    if(!RemoveDirectory(_W(folderName).c_str())) return SKIP;
   return exitCode;
 }
 

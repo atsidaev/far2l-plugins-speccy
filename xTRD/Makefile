@@ -1,38 +1,10 @@
-.autodepend
+TARGET   = xTRD.far-plug-mb
+OBJFILES = ../shared/debug.o ../shared/registry.o ../shared/widestring.o \
+           xTRD.o manager.o detector.o FmtReader.o tools.o mngr_tools.o mngr_dir.o mngr_del.o mngr_get.o mngr_put.o   mngr_key.o  \
+           Formats/TRD/trd.o \
+           Formats/FDD/fdd.o Formats/FDD/filer.o \
+           Formats/FDI/fdi.o Formats/FDI/filer.o \
+           Formats/TELEDISK/teledisk.o Formats/TELEDISK/filer.o Formats/TELEDISK/td_tools.o 
+           #          Formats/UDI/udi.o Formats/UDI/filer.o \
 
-TARGET   = xTRD.dll
-OBJFILES = debug.obj xTRD.obj manager.obj memory.obj fmtreader.obj tools.obj mngr_tools.obj mngr_dir.obj mngr_del.obj mngr_get.obj mngr_put.obj registry.obj detector.obj mngr_key.obj
-
-BCPATH = g:\
-
-BCC = $(BCPATH)\bin\bcc32.exe
-LINKER = D:\Language\BC5\bin\tlink32.exe
-
-
-
-CFLAGS =  -c -a1 -RT- -M- -x- -v- -I$(BCPATH)\include
-
-LFLAGS = -L$(BCPATH)\lib -Tpd -aa -v-
-
-
-ALLOBJ = $(OBJFILES)
-
-ALLLIB = import32.lib cw32.lib
-
-all :		$(TARGET) 
-
-#unload:
-#	load.exe -u xTRD.dll
-#load:
-#	load.exe xTRD.dll
-
-$(TARGET) : $(OBJFILES)
-        $(LINKER) @&&|
- $(LFLAGS) +
-$(ALLOBJ)
-$(TARGET),
-$(ALLLIB)
-|
-
-.cpp.obj:
-        $(BCC) $(CFLAGS) $<
+include ../include.mk

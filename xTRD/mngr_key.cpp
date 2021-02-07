@@ -1,6 +1,6 @@
 #include <windows.h>
-#include "plugin.hpp"
-
+#include "pluginold.hpp"
+using namespace oldfar;
 #include "manager.hpp"
 #include "types.hpp"
 #include "tools.hpp"
@@ -33,16 +33,17 @@ int str2int(char* p, int len)
 char* appendFileName(char* fileName, char* to, bool shortName)
 {
   char buf[300];
-  if(shortName)
+  // TODO: restore or remove (atsidaev)
+/*  if(shortName)
     GetShortPathName(fileName, buf, sizeof(buf));
-  else
+  else*/
   {
-    lstrcpy(buf, fileName);
+    strcpy(buf, fileName);
     quoteSpaceOnly(buf);
   }
   
-  CopyMemory(to, buf, lstrlen(buf));
-  return to+lstrlen(buf);
+  memcpy(to, buf, strlen(buf));
+  return to+strlen(buf);
 }
 
 int Manager::processKey(int key, unsigned int controlState)
@@ -62,7 +63,7 @@ int Manager::processKey(int key, unsigned int controlState)
     char* name = pInfo.PanelItems[pInfo.CurrentItem].FindData.cFileName;
     int fNum = 0;
     for(; fNum < noFiles; ++fNum)
-      if(!lstrcmp(name, pcFiles[fNum].name)) break;
+      if(!strcmp(name, pcFiles[fNum].name)) break;
     if(fNum == noFiles) return FALSE;
 
     char  cmdLine[600];
@@ -114,16 +115,16 @@ OkType:
                     to = appendFileName(pointToName(hostFileName), to, true);
                     break;
           case 'f':
-                    CopyMemory(to, files[fNum].name, 8);
+                    memcpy(to, files[fNum].name, 8);
                     to += 8;
                     *to++ = '.';
                     *to++ = files[fNum].type;
                     break;
           case 'N':
-                    to += wsprintf(to, "%d", fNum+1);
+                    to += sprintf(to, "%d", fNum+1);
                     break;
           case 'n':
-                    to += wsprintf(to, "%d", fNum);
+                    to += sprintf(to, "%d", fNum);
                     break;
           default:
                     *to++ = *p++;
@@ -135,8 +136,8 @@ OkType:
     }
     *to = 0;
     
-    STARTUPINFO sInfo;
-    ZeroMemory(&sInfo, sizeof(STARTUPINFO));
+/*    STARTUPINFO sInfo;
+    memset(&sInfo, 0, sizeof(STARTUPINFO));
     if(fullScreen) sInfo.dwFlags = STARTF_RUNFULLSCREEN;
     
     PROCESS_INFORMATION procInfo;
@@ -148,7 +149,7 @@ OkType:
       msgItems[2] = cmdLine;
       msgItems[3] = getMsg(MOk);
       messageBox(FMSG_WARNING | FMSG_DOWN, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 1);
-    }
+    }*/
 
     return TRUE;
   }
@@ -181,7 +182,7 @@ OkType:
         for(fNum = 0; fNum < noFolders; ++fNum)
         {
           if(folderMap[fNum] != curFolderNum) continue;
-          if(!lstrcmp(fName, pcFolders[fNum])) break;
+          if(!strcmp(fName, pcFolders[fNum])) break;
         }
         char name[12] = "           ";
         for(int i = 0; i < 11; i++)
@@ -233,7 +234,7 @@ OkType:
       else
       {
         for(; fNum < noFiles; ++fNum)
-          if(!lstrcmp(fName, pcFiles[fNum].name)) break;
+          if(!strcmp(fName, pcFiles[fNum].name)) break;
         
         char name[9] = "        ";
         for(int i = 0; i < 8; i++)
@@ -244,7 +245,7 @@ OkType:
         type[0] = files[fNum].type ? files[fNum].type : ' ';
         
         char start[6];
-        wsprintf(start, "%d", files[fNum].start);
+        sprintf(start, "%d", files[fNum].start);
         
         InitDialogItem items[]=
         {
@@ -403,22 +404,22 @@ bool Manager::checkDS(void)
 int Manager::diskMenu(void)
 {
   FarMenuItem menuItems[5];
-  ZeroMemory(menuItems, sizeof(menuItems));
+  memset(menuItems, 0, sizeof(menuItems));
   menuItems[0].Selected = TRUE;
 
   int noMenuItems = 2;
 
-  lstrcpy(menuItems[0].Text,getMsg(MCheckDisk));
+  strcpy(menuItems[0].Text,getMsg(MCheckDisk));
   if(fmt->isProtected(img))
   {
-    lstrcpy(menuItems[1].Text,getMsg(MRemoveProtection));
+    strcpy(menuItems[1].Text,getMsg(MRemoveProtection));
   }
   else
   {
-    lstrcpy(menuItems[1].Text,getMsg(MProtectDisk));
-    lstrcpy(menuItems[2].Text,getMsg(MEditDiskTitle));
-    lstrcpy(menuItems[3].Text,getMsg(MMoveDisk));
-    lstrcpy(menuItems[4].Text,getMsg(MCleanFreeSpace));
+    strcpy(menuItems[1].Text,getMsg(MProtectDisk));
+    strcpy(menuItems[2].Text,getMsg(MEditDiskTitle));
+    strcpy(menuItems[3].Text,getMsg(MMoveDisk));
+    strcpy(menuItems[4].Text,getMsg(MCleanFreeSpace));
     noMenuItems = 5;
   }
   
@@ -442,21 +443,21 @@ int Manager::diskMenu(void)
                 msgItems[4] = getMsg(MOk);
                 char msg1[30];
                 if(checkDisk())
-                  wsprintf(msg1, getMsg(MTestFiles), getMsg(MErrors));
+                  sprintf(msg1, getMsg(MTestFiles), getMsg(MErrors));
                 else
-                  wsprintf(msg1, getMsg(MTestFiles), getMsg(MNoErrors));
+                  sprintf(msg1, getMsg(MTestFiles), getMsg(MNoErrors));
                 msgItems[1] = msg1;
                 char msg2[30];
                 if(!op.useDS)
-                  wsprintf(msg2, getMsg(MTestDS), getMsg(MDisabled));
+                  sprintf(msg2, getMsg(MTestDS), getMsg(MDisabled));
                 else
                   if(!dsOk)
-                    wsprintf(msg2, getMsg(MTestDS), getMsg(MAbsent));
+                    sprintf(msg2, getMsg(MTestDS), getMsg(MAbsent));
                   else
                     if(checkDS())
-                      wsprintf(msg2, getMsg(MTestDS), getMsg(MErrors));
+                      sprintf(msg2, getMsg(MTestDS), getMsg(MErrors));
                     else
-                      wsprintf(msg2, getMsg(MTestDS), getMsg(MNoErrors));
+                      sprintf(msg2, getMsg(MTestDS), getMsg(MNoErrors));
                 msgItems[2] = msg2;
                 messageBox(0, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 1);
                 break;
@@ -509,7 +510,7 @@ int Manager::diskMenu(void)
                 if(askCode != 4) return TRUE;
 
                 char* p = dialogItems[2].Data;
-                FillMemory(diskInfo.title, 11, ' ');
+                memset(diskInfo.title, ' ', 11);
                 for(int i = 0; i < 11; ++i)
                 {
                   if(*p > 0) diskInfo.title[i] = *p;
@@ -540,7 +541,7 @@ int Manager::diskMenu(void)
     case 4: /* clean free space */
               {
                 BYTE zeroSec[sectorSize];
-                ZeroMemory(zeroSec, sectorSize);
+                memset(zeroSec, 0, sectorSize);
                 if(!openHostFile()) return FALSE;
                 
                 int trk = diskInfo.firstFreeTrk;

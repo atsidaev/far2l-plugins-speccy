@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "plugin.hpp"
+#include "pluginold.hpp"
 
 #include "manager.hpp"
 #include "types.hpp"
@@ -13,17 +13,17 @@ int Manager::setDirectory(char* dirName, int opMode)
 {
   if(!op.useDS || !dsOk) return FALSE;
 
-  if(!lstrcmp(dirName, "\\"))
+  if(!strcmp(dirName, "/"))
   {
     *curFolder   = 0;
     curFolderNum = 0;
     return TRUE;
   }
-  if(!lstrcmp(dirName, ".."))
+  if(!strcmp(dirName, ".."))
   {
     if(*curFolder == 0) return FALSE;
 
-    char* slash = str_r_chr(curFolder, '\\');
+    char* slash = str_r_chr(curFolder, '/');
     if(slash)
     {
       *slash       = 0;
@@ -41,13 +41,13 @@ int Manager::setDirectory(char* dirName, int opMode)
     for(;fNum < noFolders; ++fNum)
     {
       if(folderMap[fNum] != curFolderNum) continue;
-      if(!lstrcmp(pcFolders[fNum], dirName)) break;
+      if(!strcmp(pcFolders[fNum], dirName)) break;
     }
     if(fNum == noFolders) return FALSE;
 
     curFolderNum = fNum + 1;
-    lstrcat(curFolder, "\\");
-    lstrcat(curFolder, dirName);
+    strcat(curFolder, "/");
+    strcat(curFolder, dirName);
   }
   return TRUE;
 }
@@ -87,7 +87,7 @@ int Manager::makeDirectory(char* dirName, int opMode)
   {
     DI_DOUBLEBOX,3,1,60,6,0,0,0,0,(char*)MMakeFolder,
     DI_TEXT,5,2,0,0,0,0,0,0,(char*)MCreateFolder,
-    DI_EDIT,5,3,58,0,1,(int)historyName,DIF_HISTORY,0,dirName,
+    DI_EDIT,5,3,58,0,1,(DWORD_PTR)historyName,DIF_HISTORY,0,dirName,
     DI_TEXT,3,4,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,"",
     DI_BUTTON,0,5,0,0,0,0,DIF_CENTERGROUP,1,(char*)MOk,
     DI_BUTTON,0,5,0,0,0,0,DIF_CENTERGROUP,0,(char*)MCancel
@@ -104,13 +104,13 @@ int Manager::makeDirectory(char* dirName, int opMode)
                                      NULL,
                                      dialogItems,
                                      sizeof(dialogItems)/sizeof(dialogItems[0]));
-    lstrcpy(dirName, dialogItems[2].Data);
+    strcpy(dirName, dialogItems[2].Data);
     if(askCode != 4) return -1;
   }
   if(*dirName == 0) return 1;
 
   if(!openHostFile()) return 0;
-  FillMemory(folders[noFolders], 11, ' ');
+  memset(folders[noFolders], ' ', 11);
 
   make8x3name(dirName, folders[noFolders]);
   if(folders[noFolders][0] == 0x01) ++noDelFolders;

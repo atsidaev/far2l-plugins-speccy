@@ -5,6 +5,7 @@
 #include "types.hpp"
 #include "tools.hpp"
 #include "lang.hpp"
+#include "widestring.hpp"
 
 extern Options           op;
 extern Detector*         detector;
@@ -24,7 +25,7 @@ bool Manager::read(int trk, int sec, BYTE* buf)
     msgItems[1] = getMsg(MCanNotReadSec);
     msgItems[3] = getMsg(MOk);
     char msg[30];
-    wsprintf(msg, getMsg(MTrkSec), trk, sec);
+    sprintf(msg, getMsg(MTrkSec), trk, sec);
     msgItems[2] = msg;
     messageBox(FMSG_WARNING, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 1);
   }
@@ -41,7 +42,7 @@ bool Manager::write(int trk, int sec, BYTE* buf)
     msgItems[1] = getMsg(MCanNotWriteSec);
     msgItems[3] = getMsg(MOk);
     char msg[30];
-    wsprintf(msg, getMsg(MTrkSec), trk, sec);
+    sprintf(msg, getMsg(MTrkSec), trk, sec);
     msgItems[2] = msg;
     messageBox(FMSG_WARNING, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 1);
   }
@@ -52,7 +53,7 @@ bool Manager::readInfo(void)
 {
   // проверяем не изменился ли файл на диске
   WIN32_FIND_DATA data;
-  HANDLE h = FindFirstFile(hostFileName, &data);
+  HANDLE h = FindFirstFile(_W(hostFileName).c_str(), &data);
   if(h == INVALID_HANDLE_VALUE) return false;
   FindClose(h);
   if(!op.useDS)
@@ -82,19 +83,19 @@ bool Manager::readInfo(void)
       if(*ptr == 0x00) break;
       if(*ptr == 0x01) ++noDelFiles;
 
-      CopyMemory(&files[noFiles], ptr, sizeof(FileHdr));
+      memcpy(&files[noFiles], ptr, sizeof(FileHdr));
       // стираем каталог, чтобы в дальнейшем
       // проще было делать MOVE
       *ptr = 0x00; 
       ptr += sizeof(FileHdr);
     }
     
-    CopyMemory(&diskInfo, zeroTrk+8*sectorSize+0xE1, sizeof(DiskHdr));
+    memcpy(&diskInfo, zeroTrk+8*sectorSize+0xE1, sizeof(DiskHdr));
     
     // обрабатываем DirSys
     BYTE folderName[11];
     if(curFolderNum != 0)
-      CopyMemory(folderName, folders[curFolderNum-1], 11);
+      memcpy(folderName, folders[curFolderNum-1], 11);
 
     noFolders    = 0;
     noDelFolders = 0;
@@ -104,15 +105,15 @@ bool Manager::readInfo(void)
     if(!memcmp(ptr+2, dsSignature, sizeof(dsSignature)))
     {
       dsCRC = *(WORD*)ptr;
-      CopyMemory(fileMap,   ptr+2+sizeof(dsSignature),     128);
-      CopyMemory(folderMap, ptr+2+sizeof(dsSignature)+128, 127);
+      memcpy(fileMap,   ptr+2+sizeof(dsSignature),     128);
+      memcpy(folderMap, ptr+2+sizeof(dsSignature)+128, 127);
       ptr = zeroTrk+10*sectorSize+11;
       for(; noFolders < 127; ++noFolders)
       {
         if(*ptr == 0x00) break;
         if(*ptr == 0x01) ++noDelFolders;
 
-        CopyMemory(folders[noFolders], ptr, 11);
+        memcpy(folders[noFolders], ptr, 11);
         ptr += 11;
       }
       dsOk = (dsCRC == calcDScrc());
@@ -147,24 +148,24 @@ bool Manager::readInfo(void)
 
 void Manager::writeInfo(void)
 {
-  CopyMemory(zeroTrk, files, noFiles*sizeof(FileHdr));
-  CopyMemory(zeroTrk+8*sectorSize+0xE1, &diskInfo, sizeof(DiskHdr));
+  memcpy(zeroTrk, files, noFiles*sizeof(FileHdr));
+  memcpy(zeroTrk+8*sectorSize+0xE1, &diskInfo, sizeof(DiskHdr));
   for(int i = 0; i < 9; ++i) write(0, i, zeroTrk+i*sectorSize);
 
   BYTE* dsPtr = zeroTrk+9*sectorSize;
   if(dsOk)
   {
-    CopyMemory(dsPtr+2,      dsSignature, sizeof(dsSignature));
+    memcpy(dsPtr+2,      dsSignature, sizeof(dsSignature));
 
-    CopyMemory(dsPtr+11,     fileMap,     128);
-    CopyMemory(dsPtr+11+128, folderMap,   127);
-    CopyMemory(dsPtr+11+256, folders,     11*noFolders);
+    memcpy(dsPtr+11,     fileMap,     128);
+    memcpy(dsPtr+11+128, folderMap,   127);
+    memcpy(dsPtr+11+256, folders,     11*noFolders);
 
     dsPtr[11+255]              = 0;
     dsPtr[11+256+11*noFolders] = 0;
 
     dsCRC = calcDScrc();
-    CopyMemory(dsPtr, &dsCRC, 2);
+    memcpy(dsPtr, &dsCRC, 2);
     for(int i = 9; i < 16; ++i) write(0, i, zeroTrk+i*sectorSize);
   }
 }
@@ -185,12 +186,12 @@ void Manager::makePCNames(void)
       --last;
     }
     BYTE  noChars = 0;
-    BYTE* from    = files  [fNum].name;
-    BYTE* to      = pcFiles[fNum].name;
+    BYTE* from    = (BYTE*)files  [fNum].name;
+    BYTE* to      = (BYTE*)pcFiles[fNum].name;
     
     if(first > last)
     {
-      FillMemory(to, 8, '_');
+      memset(to, '_', 8);
       noChars = 8;
     }
     else
@@ -205,12 +206,12 @@ void Manager::makePCNames(void)
     // обрабатываем специальные имена устройств
     if(noChars == 3 || noChars == 4)
     {
-      if(!memcmpi(to, "com", 3) ||
-         !memcmpi(to, "lpt", 3) ||
-         !memcmpi(to, "prn", 3) ||
-         !memcmpi(to, "con", 3) ||
-         !memcmpi(to, "aux", 3) ||
-         !memcmpi(to, "nul", 3)) to[noChars++] = '_';
+      if(!memcmpi((const char*)to, "com", 3) ||
+         !memcmpi((const char*)to, "lpt", 3) ||
+         !memcmpi((const char*)to, "prn", 3) ||
+         !memcmpi((const char*)to, "con", 3) ||
+         !memcmpi((const char*)to, "aux", 3) ||
+         !memcmpi((const char*)to, "nul", 3)) to[noChars++] = '_';
     }
 
     BYTE dotPos = noChars;
@@ -223,7 +224,7 @@ void Manager::makePCNames(void)
     if(op.detectFormat)
     {
       BYTE secs[16*sectorSize];
-      ZeroMemory(secs, 16*sectorSize);
+      memset(secs, 0, 16*sectorSize);
 
       int noSecs = files[fNum].noSecs;
       if(noSecs > 16) noSecs = 16;
@@ -246,8 +247,8 @@ void Manager::makePCNames(void)
    
     if(typeNum != 0xFF)
     {
-      detector->specialChar(typeNum, to+dotPos+1);
-      detector->getType(typeNum, to+dotPos+2);
+      detector->specialChar(typeNum, (char*)(to+dotPos+1));
+      detector->getType(typeNum, (char*)(to+dotPos+2));
       pcFiles[fNum].skipHeader = detector->getSkipHeader(typeNum);
     }
     // обрабатываем многотомные zxzip архивы
@@ -256,16 +257,16 @@ void Manager::makePCNames(void)
        !memcmp(&files[fNum-1].type, "ZIP", 3))
     {
       if(memcmp(files[fNum-1].name, "********", 8))
-        lstrcpy(to, pcFiles[fNum-1].name);
+        strcpy((char*)to, pcFiles[fNum-1].name);
       else
-        lstrcpyn(to, pcFiles[fNum-1].name, lstrlen(pcFiles[fNum-1].name));
+        strncpy((char*)to, pcFiles[fNum-1].name, strlen(pcFiles[fNum-1].name));
     }
     // обрабатываем повторяющиеся имена
     int i = fNum;
     while(i-- > 0)
     {
-      int len = lstrlen(to);
-      if(!memcmpi(to, pcFiles[i].name, len))
+      int len = strlen((const char*)to);
+      if(!memcmpi((const char*)to, pcFiles[i].name, len))
       {
         BYTE ch = pcFiles[i].name[len];
         ch = (ch != 0) ? ch+1 : '0';
@@ -284,38 +285,38 @@ void Manager::makePCNames(void)
   for(int fNum = 0; fNum < noFolders; ++fNum)
   {
     char* ptr = pcFolders[fNum];
-    CopyMemory(ptr, folders[fNum], 8);
+    memcpy(ptr, folders[fNum], 8);
     ptr[8] = 0;
     trim(ptr);
-    for(int i = 0; i < lstrlen(ptr); ++i) if(!isValidFolderChar(ptr[i])) ptr[i] = '_';
+    for(int i = 0; i < strlen(ptr); ++i) if(!isValidFolderChar(ptr[i])) ptr[i] = '_';
     
     char ext[4];
-    CopyMemory(ext, folders[fNum]+8, 3);
+    memcpy(ext, folders[fNum]+8, 3);
     ext[3] = 0;
     trim(ext);
     if(ext[0] != 0)
     {
-      for(int i = 0; i < lstrlen(ext); ++i) if(!isValidFolderChar(ext[i])) ext[i] = '_';
-      lstrcat(ptr, ".");
-      lstrcat(ptr, ext);
+      for(int i = 0; i < strlen(ext); ++i) if(!isValidFolderChar(ext[i])) ext[i] = '_';
+      strcat(ptr, ".");
+      strcat(ptr, ext);
     }
     int i = fNum;
     while(i-- > 0)
     {
       if(folderMap[i] != folderMap[fNum]) continue;
       
-      int len = lstrlen(ptr);
+      int len = strlen(ptr);
       if(!memcmpi(ptr, pcFolders[i], len))
       {
-        if(lstrlen(pcFolders[i]) == len)
+        if(strlen(pcFolders[i]) == len)
         {
-          lstrcat(ptr, ".0");
+          strcat(ptr, ".0");
           break;
         }
         char ch = pcFolders[i][len+1];
         if(pcFolders[i][len] == '.' && isEnAlphaNum(ch))
         {
-          lstrcat(ptr, ".0");
+          strcat(ptr, ".0");
           ++ch;
           if(ch == '9'+1) ch = 'A'; 
           if(ch == 'Z'+1) ch = 'a';

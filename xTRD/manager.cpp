@@ -1,5 +1,6 @@
 #include <windows.h>
-#include "plugin.hpp"
+#include "pluginold.hpp"
+using namespace oldfar;
 
 #include "manager.hpp"
 #include "detector.hpp"
@@ -7,13 +8,15 @@
 #include "tools.hpp"
 #include "lang.hpp"
 
+#include "widestring.hpp"
+
 extern PluginStartupInfo startupInfo;
 extern Detector*         detector;
 extern Options           op;
 
 Manager::Manager(char* fileName, FmtPlugin *fmtPlugin)
 {
-  lstrcpy(hostFileName, fileName);
+  strcpy(hostFileName, fileName);
   fmt = fmtPlugin;
   noFiles      = 0;
   noDelFiles   = 0;
@@ -21,10 +24,10 @@ Manager::Manager(char* fileName, FmtPlugin *fmtPlugin)
   *curFolder   = 0;
   
   img = fmt->init(hostFileName);
-  ZeroMemory(&lastModifed, sizeof(WIN32_FIND_DATA));
+  memset(&lastModifed, 0, sizeof(WIN32_FIND_DATA));
 
-  ZeroMemory(fileMap,   sizeof(fileMap));
-  ZeroMemory(folderMap, sizeof(folderMap));
+  memset(fileMap,   0, sizeof(fileMap));
+  memset(folderMap, 0, sizeof(folderMap));
 }
 
 Manager::~Manager()
@@ -43,10 +46,10 @@ void Manager::getOpenPluginInfo(OpenPluginInfo* info)
   
   static char panelTitle[260];
   panelTitle[0] = 0;
-  lstrcat(panelTitle, " xTRD:");
-  lstrcat(panelTitle, pointToName(hostFileName));
-  if(op.useDS) lstrcat(panelTitle, curFolder);
-  lstrcat(panelTitle, " ");
+  strcat(panelTitle, " xTRD:");
+  strcat(panelTitle, pointToName(hostFileName));
+  if(op.useDS) strcat(panelTitle, curFolder);
+  strcat(panelTitle, " ");
   info->PanelTitle = panelTitle;
 
   static PanelMode mode[10];
@@ -115,84 +118,84 @@ void Manager::getOpenPluginInfo(OpenPluginInfo* info)
   if(readInfo())
   {
     static InfoPanelLine infoLines[14];
-    lstrcpy(infoLines[0].Text, getMsg(MDiskInfo));
+    strcpy(infoLines[0].Text, getMsg(MDiskInfo));
     infoLines[0].Separator = TRUE;
-    lstrcpy(infoLines[1].Text, getMsg(MImageType));
-    lstrcpy(infoLines[1].Data, fmt->getFormatName());
+    strcpy(infoLines[1].Text, getMsg(MImageType));
+    strcpy(infoLines[1].Data, fmt->getFormatName());
     
     infoLines[1].Separator = FALSE;
-    lstrcpy(infoLines[2].Text, getMsg(MDiskTitle));
+    strcpy(infoLines[2].Text, getMsg(MDiskTitle));
     int noChars = 11;
     while(noChars--)
       if(diskInfo.title[noChars] != ' ' && diskInfo.title[noChars] != 0) break;
       
-    lstrcpyn(infoLines[2].Data, diskInfo.title, noChars+2);
+    strncpy(infoLines[2].Data, diskInfo.title, noChars+2);
     infoLines[2].Separator = FALSE;
 
-    lstrcpy(infoLines[3].Text, getMsg(MDiskType));
+    strcpy(infoLines[3].Text, getMsg(MDiskType));
     switch(diskInfo.type)
     {
       case 0x16:
-                lstrcpy(infoLines[3].Data, getMsg(M2SDD));
+                strcpy(infoLines[3].Data, getMsg(M2SDD));
                 break;
       case 0x17:
-                lstrcpy(infoLines[3].Data, getMsg(M2SSD));
+                strcpy(infoLines[3].Data, getMsg(M2SSD));
                 break;
       case 0x18:
-                lstrcpy(infoLines[3].Data, getMsg(M1SDD));
+                strcpy(infoLines[3].Data, getMsg(M1SDD));
                 break;
       case 0x19:
-                lstrcpy(infoLines[3].Data, getMsg(M1SSD));
+                strcpy(infoLines[3].Data, getMsg(M1SSD));
                 break;
       default:
-                lstrcpy(infoLines[3].Data, getMsg(MDiskUnknown));
+                strcpy(infoLines[3].Data, getMsg(MDiskUnknown));
                 break;
     }
     infoLines[3].Separator = FALSE;
 
-    lstrcpy(infoLines[4].Text, getMsg(MWriteProtection));
+    strcpy(infoLines[4].Text, getMsg(MWriteProtection));
     if(fmt->isProtected(img))
-      lstrcpy(infoLines[4].Data, getMsg(MOn));
+      strcpy(infoLines[4].Data, getMsg(MOn));
     else
-      lstrcpy(infoLines[4].Data, getMsg(MOff));
+      strcpy(infoLines[4].Data, getMsg(MOff));
     infoLines[4].Separator = FALSE;
     
-    lstrcpy(infoLines[5].Text, getMsg(MFilesInfo));
+    strcpy(infoLines[5].Text, getMsg(MFilesInfo));
     infoLines[5].Separator = TRUE;
     
-    lstrcpy(infoLines[6].Text, getMsg(MFiles));
-    wsprintf(infoLines[6].Data, "%d", diskInfo.noFiles);
+    strcpy(infoLines[6].Text, getMsg(MFiles));
+    sprintf(infoLines[6].Data, "%d", diskInfo.noFiles);
     infoLines[6].Separator = FALSE;
-    lstrcpy(infoLines[7].Text, getMsg(MFilesDel));
-    wsprintf(infoLines[7].Data, "%d", diskInfo.noDelFiles);
+    strcpy(infoLines[7].Text, getMsg(MFilesDel));
+    sprintf(infoLines[7].Data, "%d", diskInfo.noDelFiles);
     infoLines[7].Separator = FALSE;
     
-    lstrcpy(infoLines[8].Text, getMsg(MDirInfo));
+    strcpy(infoLines[8].Text, getMsg(MDirInfo));
     infoLines[8].Separator = TRUE;
     
-    lstrcpy(infoLines[9].Text, getMsg(MDirSys));
+    strcpy(infoLines[9].Text, getMsg(MDirSys));
     if(!op.useDS)
-      lstrcpy(infoLines[9].Data, getMsg(MDisabled));
+      strcpy(infoLines[9].Data, getMsg(MDisabled));
     else
     {
       if(!dsOk)
-        lstrcpy(infoLines[9].Data, getMsg(MAbsent));
+        strcpy(infoLines[9].Data, getMsg(MAbsent));
       else
-        lstrcpy(infoLines[9].Data, getMsg(MDS100));
+        strcpy(infoLines[9].Data, getMsg(MDS100));
     }
     infoLines[9].Separator = FALSE;
     
-    lstrcpy(infoLines[10].Text, getMsg(MFreeAreaInfo));
+    strcpy(infoLines[10].Text, getMsg(MFreeAreaInfo));
     infoLines[10].Separator = TRUE;
     
-    lstrcpy(infoLines[11].Text, getMsg(M1Trk));
-    wsprintf(infoLines[11].Data, "%d", diskInfo.firstFreeTrk);
+    strcpy(infoLines[11].Text, getMsg(M1Trk));
+    sprintf(infoLines[11].Data, "%d", diskInfo.firstFreeTrk);
     infoLines[11].Separator = FALSE;
-    lstrcpy(infoLines[12].Text, getMsg(M1Sec));
-    wsprintf(infoLines[12].Data, "%d", diskInfo.firstFreeSec);
+    strcpy(infoLines[12].Text, getMsg(M1Sec));
+    sprintf(infoLines[12].Data, "%d", diskInfo.firstFreeSec);
     infoLines[12].Separator = FALSE;
-    lstrcpy(infoLines[13].Text, getMsg(MFreeSecs));
-    wsprintf(infoLines[13].Data, "%d", diskInfo.noFreeSecs);
+    strcpy(infoLines[13].Text, getMsg(MFreeSecs));
+    sprintf(infoLines[13].Data, "%d", diskInfo.noFreeSecs);
     infoLines[13].Separator = FALSE;
 
     info->InfoLines = infoLines;
@@ -221,17 +224,17 @@ int Manager::getFindData(PluginPanelItem **pPanelItem, int *pNoItems, int opMode
   }
   
   PluginPanelItem *item = new PluginPanelItem[noItems+1];
-
+  memset(item, 0, (noItems + 1) * sizeof(PluginPanelItem));
   *pNoItems   = noItems+1;
   *pPanelItem = item;
 
-  lstrcpy(item[0].FindData.cFileName, "..");
+  strcpy(item[0].FindData.cFileName, "..");
   item[0].FindData.dwFileAttributes = FILE_ATTRIBUTE_DIRECTORY;
 
   item[0].CustomColumnNumber  = 1;
   item[0].CustomColumnData    = new LPSTR[item[0].CustomColumnNumber];
   item[0].CustomColumnData[0] = new char[3];
-  lstrcpy(item[0].CustomColumnData[0], "..");
+  strcpy(item[0].CustomColumnData[0], "..");
 
   if(noItems == 0) return TRUE;
 
@@ -260,16 +263,16 @@ int Manager::getFindData(PluginPanelItem **pPanelItem, int *pNoItems, int opMode
 
       folderNum = j;
       item[i+1].FindData.dwFileAttributes = folders[folderNum][0] != 0x01 ? FILE_ATTRIBUTE_DIRECTORY : FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_HIDDEN;
-      lstrcpy(item[i+1].FindData.cFileName, pcFolders[folderNum]);
+      strcpy(item[i+1].FindData.cFileName, pcFolders[folderNum]);
 
       item[i+1].CustomColumnNumber  = 1;
       item[i+1].CustomColumnData    = new LPSTR[item[i+1].CustomColumnNumber];
       item[i+1].CustomColumnData[0] = new char[nameColumnWidth+1];
-      FillMemory(name, nameColumnWidth+1, ' ');
-      CopyMemory(name, folders[folderNum], 8);
-      CopyMemory(name+nameColumnWidth-3, folders[folderNum]+8, 3);
+      memset(name, ' ', nameColumnWidth+1);
+      memcpy(name, folders[folderNum], 8);
+      memcpy(name+nameColumnWidth-3, folders[folderNum]+8, 3);
       name[nameColumnWidth] = 0;
-      lstrcpy(item[i+1].CustomColumnData[0], name);
+      strcpy(item[i+1].CustomColumnData[0], name);
       ++folderNum;
     }
   }
@@ -291,39 +294,39 @@ int Manager::getFindData(PluginPanelItem **pPanelItem, int *pNoItems, int opMode
     }
     
     item[iNum].FindData.dwFileAttributes = files[fNum].name[0] == 0x01 ? FILE_ATTRIBUTE_HIDDEN : FILE_ATTRIBUTE_NORMAL;
-    lstrcpy(item[iNum].FindData.cFileName, pcFiles[fNum].name);
+    strcpy(item[iNum].FindData.cFileName, pcFiles[fNum].name);
     item[iNum].FindData.nFileSizeLow = files[fNum].size;
-    
+
     item[iNum].CustomColumnNumber = 7;
     item[iNum].CustomColumnData = new LPSTR[item[iNum].CustomColumnNumber];
     
     item[iNum].CustomColumnData[0] = new char[nameColumnWidth+1];
     
-    FillMemory(name, nameColumnWidth+1, ' ');
+    memset(name, ' ', nameColumnWidth+1);
     
     makeTrDosName(name, files[fNum], nameColumnWidth);
-    lstrcpy(item[iNum].CustomColumnData[0], name);
+    strcpy(item[iNum].CustomColumnData[0], name);
     
     item[iNum].CustomColumnData[1] = new char[6];
-    wsprintf(item[iNum].CustomColumnData[1], "%5d", files[fNum].start);
+    sprintf(item[iNum].CustomColumnData[1], "%5d", files[fNum].start);
 
     item[iNum].CustomColumnData[2] = new char[4];
-    wsprintf(item[iNum].CustomColumnData[2],
+    sprintf(item[iNum].CustomColumnData[2],
              "%3d",
              files[fNum].noSecs);
 
     item[iNum].CustomColumnData[3] = new char[4];
-    wsprintf(item[iNum].CustomColumnData[3], "%3d", files[fNum].trk);
+    sprintf(item[iNum].CustomColumnData[3], "%3d", files[fNum].trk);
 
     item[iNum].CustomColumnData[4] = new char[4];
-    wsprintf(item[iNum].CustomColumnData[4], "%3d", files[fNum].sec);
+    sprintf(item[iNum].CustomColumnData[4], "%3d", files[fNum].sec);
 
     
     char* description = detector->description(pcFiles[fNum].type);
     if(description)
     {
-      item[iNum].CustomColumnData[5] = new char[lstrlen(description)+1];
-      lstrcpy(item[iNum].CustomColumnData[5], description);
+      item[iNum].CustomColumnData[5] = new char[strlen(description)+1];
+      strcpy(item[iNum].CustomColumnData[5], description);
     }
     else
     {
@@ -333,8 +336,8 @@ int Manager::getFindData(PluginPanelItem **pPanelItem, int *pNoItems, int opMode
     char* comment = pcFiles[fNum].comment;
     if(comment)
     {
-      item[iNum].CustomColumnData[6] = new char[lstrlen(comment)+1];
-      lstrcpy(item[iNum].CustomColumnData[6], comment);
+      item[iNum].CustomColumnData[6] = new char[strlen(comment)+1];
+      strcpy(item[iNum].CustomColumnData[6], comment);
     }
     else
     {

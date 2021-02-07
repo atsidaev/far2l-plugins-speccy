@@ -1,13 +1,14 @@
-#include "..\fmt.hpp"
+#include "../fmt.hpp"
 #include "filer.hpp"
 #include "udi.hpp"
+#include "../../widestring.hpp"
 
 bool WINAPI _export isImage(const char* fileName, const BYTE* data, int size)
 {
   if(data[0] != 'U' || data[1] != 'D' || data[2] != 'I' || data[3] != '!' ||
      data[8] != 0) return false;
 
-  HANDLE hostFile = CreateFile(fileName,
+  HANDLE hostFile = CreateFile(_W((char*)fileName).c_str(),
                                GENERIC_READ,
                                FILE_SHARE_READ | FILE_SHARE_WRITE,
                                NULL,
@@ -82,37 +83,37 @@ bool WINAPI _export isImage(const char* fileName, const BYTE* data, int size)
 
 HANDLE WINAPI _export init(const char* fileName)
 {
-  return (HANDLE)(new Filer(fileName));
+  return (HANDLE)(new FilerUDI(fileName));
 }
 
 void WINAPI _export cleanup(HANDLE h)
 {
-  delete (Filer*)h;
+  delete (FilerUDI*)h;
 }
 
 bool WINAPI _export reload (HANDLE h) { return true; }
 
 bool WINAPI _export open(HANDLE h)
 {
-  Filer* f = (Filer*)h;
+  FilerUDI* f = (FilerUDI*)h;
   return f->open();
 }
 
 bool WINAPI _export close(HANDLE h)
 {
-  Filer* f = (Filer*)h;
+  FilerUDI* f = (FilerUDI*)h;
   return f->close();
 }
 
 bool WINAPI _export read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
-  Filer* f = (Filer*)h;
+  FilerUDI* f = (FilerUDI*)h;
   return f->read(trk, sec, buf);
 }
 
 bool WINAPI _export write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
-  Filer* f = (Filer*)h;
+  FilerUDI* f = (FilerUDI*)h;
   return f->write(trk, sec, buf);
 }
 
@@ -124,12 +125,12 @@ char* WINAPI _export getFormatName (void)
 
 bool WINAPI _export isProtected(HANDLE h)
 {
-  Filer* f = (Filer*)h;
+  FilerUDI* f = (FilerUDI*)h;
   return f->isProtected();
 }
 
 bool WINAPI _export protect(HANDLE h, bool on)
 {
-  Filer* f = (Filer*)h;
+  FilerUDI* f = (FilerUDI*)h;
   return f->protect(on);
 }

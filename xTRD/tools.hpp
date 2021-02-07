@@ -16,9 +16,10 @@ bool isValidChar      (BYTE ch);
 bool isValidFolderChar(BYTE ch); // разрешаем русские буквы
 
 char *str_r_chr(const char *s, int c);
-int memcmp (const BYTE* p1, const BYTE* p2, int maxlen);
+// int memcmp (BYTE* p1, BYTE* p2, int maxlen);
 // сравнение областей памяти без учета регистра
 int memcmpi(const char* p1, const char* p2, int maxlen);
+int strcmpi(const char* p1, const char* p2);
 
 bool isEnAlphaNum (BYTE ch);
 void makeTrDosName(char* dest, const FileHdr& hdr, int width);

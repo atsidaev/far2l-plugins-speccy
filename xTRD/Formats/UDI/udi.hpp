@@ -3,6 +3,8 @@
 
 const unsigned short sectorSize = 0x100;
 
+#pragma pack(1)
+
 struct UDIHdr
 {
   char  signature[4];
@@ -24,6 +26,8 @@ struct TrackHdr
   BYTE type;
   WORD tLen;
 };
+
+#pragma pack()
 
 BYTE readCByte (BYTE *ctr, WORD byte)
 {

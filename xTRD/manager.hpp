@@ -2,7 +2,8 @@
 #define MANAGER_HPP
 
 #include <windows.h>
-#include "plugin.hpp"
+#include "pluginold.hpp"
+using namespace oldfar;
 #include "fmtReader.hpp"
 #include "types.hpp"
 

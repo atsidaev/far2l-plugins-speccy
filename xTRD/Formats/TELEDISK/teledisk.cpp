@@ -1,15 +1,16 @@
-#include "..\fmt.hpp"
+#include "../fmt.hpp"
 #include "filer.hpp"
 #include "teledisk.hpp"
 #include "td_tools.hpp"
+#include "../../../shared/widestring.hpp"
 
-bool WINAPI _export isImage(const char* fileName, const BYTE* data, int size)
+bool WINAPI _export td_isImage(const char* fileName, const BYTE* data, int size)
 {
   if((data[0] != 't' || data[1] != 'd' || data[4] < 20) &&
      (data[0] != 'T' || data[1] != 'D'))
     return false;
 
-  HANDLE hostFile = CreateFile(fileName,
+  HANDLE hostFile = CreateFile(_W((char*)fileName).c_str(),
                                GENERIC_READ,
                                FILE_SHARE_READ | FILE_SHARE_WRITE,
                                NULL,
@@ -87,57 +88,57 @@ error:
   return false;
 }
 
-HANDLE WINAPI _export init(const char* fileName)
+HANDLE WINAPI _export td_init(const char* fileName)
 {
-  return (HANDLE)(new Filer(fileName));
+  return (HANDLE)(new FilerTD(fileName));
 }
 
-void WINAPI _export cleanup(HANDLE h)
+void WINAPI _export td_cleanup(HANDLE h)
 {
-  delete (Filer*)h;
+  delete (FilerTD*)h;
 }
 
-bool WINAPI _export reload(HANDLE h)
+bool WINAPI _export td_reload(HANDLE h)
 {
-  Filer* f = (Filer*)h;
+  FilerTD* f = (FilerTD*)h;
   return f->reload();
 }
 
-bool WINAPI _export open(HANDLE h)
+bool WINAPI _export td_open(HANDLE h)
 {
-  Filer* f = (Filer*)h;
+  FilerTD* f = (FilerTD*)h;
   return f->open();
 }
 
-bool WINAPI _export close(HANDLE h)
+bool WINAPI _export td_close(HANDLE h)
 {
-  Filer* f = (Filer*)h;
+  FilerTD* f = (FilerTD*)h;
   return f->close();
 }
 
-bool WINAPI _export read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
+bool WINAPI _export td_read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
-  Filer* f = (Filer*)h;
+  FilerTD* f = (FilerTD*)h;
   return f->read(trk, sec, buf);
 }
 
-bool WINAPI _export write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
+bool WINAPI _export td_write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
   return false;
 }
 
-char* WINAPI _export getFormatName (void)
+char* WINAPI _export td_getFormatName (void)
 {
   static char* name = "TeleDisk";
   return name;
 }
 
-bool WINAPI _export isProtected(HANDLE h)
+bool WINAPI _export td_isProtected(HANDLE h)
 {
   return true;
 }
 
-bool WINAPI _export protect(HANDLE h, bool on)
+bool WINAPI _export td_protect(HANDLE h, bool on)
 {
   return false;
 }

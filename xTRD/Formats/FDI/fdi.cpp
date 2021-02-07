@@ -1,12 +1,13 @@
-#include "..\fmt.hpp"
+#include "../fmt.hpp"
 #include "filer.hpp"
 #include "fdi.hpp"
+#include "../../../shared/widestring.hpp"
 
-bool WINAPI _export isImage(const char* fileName, const BYTE* data, int size)
+bool WINAPI _export fdi_isImage(const char* fileName, const BYTE* data, int size)
 {
   if(data[0] != 'F' || data[1] != 'D' || data[2] != 'I') return false;
 
-  HANDLE hostFile = CreateFile(fileName,
+  HANDLE hostFile = CreateFile(_W((char*)fileName).c_str(),
                                GENERIC_READ,
                                FILE_SHARE_READ | FILE_SHARE_WRITE,
                                NULL,
@@ -58,56 +59,56 @@ bool WINAPI _export isImage(const char* fileName, const BYTE* data, int size)
   return true;
 }
 
-HANDLE WINAPI _export init(const char* fileName)
+HANDLE WINAPI _export fdi_init(const char* fileName)
 {
-  return (HANDLE)(new Filer(fileName));
+  return (HANDLE)(new FilerFDI(fileName));
 }
 
-void WINAPI _export cleanup(HANDLE h)
+void WINAPI _export fdi_cleanup(HANDLE h)
 {
-  delete (Filer*)h;
+  delete (FilerFDI*)h;
 }
 
-bool WINAPI _export reload (HANDLE h) { return true; }
+bool WINAPI _export fdi_reload (HANDLE h) { return true; }
 
-bool WINAPI _export open(HANDLE h)
+bool WINAPI _export fdi_open(HANDLE h)
 {
-  Filer* f = (Filer*)h;
+  FilerFDI* f = (FilerFDI*)h;
   return f->open();
 }
 
-bool WINAPI _export close(HANDLE h)
+bool WINAPI _export fdi_close(HANDLE h)
 {
-  Filer* f = (Filer*)h;
+  FilerFDI* f = (FilerFDI*)h;
   return f->close();
 }
 
-bool WINAPI _export read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
+bool WINAPI _export fdi_read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
-  Filer* f = (Filer*)h;
+  FilerFDI* f = (FilerFDI*)h;
   return f->read(trk, sec, buf);
 }
 
-bool WINAPI _export write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
+bool WINAPI _export fdi_write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
-  Filer* f = (Filer*)h;
+  FilerFDI* f = (FilerFDI*)h;
   return f->write(trk, sec, buf);
 }
 
-char* WINAPI _export getFormatName (void)
+char* WINAPI _export fdi_getFormatName (void)
 {
   static char* name = "FDI";
   return name;
 }
 
-bool WINAPI _export isProtected(HANDLE h)
+bool WINAPI _export fdi_isProtected(HANDLE h)
 {
-  Filer* f = (Filer*)h;
+  FilerFDI* f = (FilerFDI*)h;
   return f->isProtected();
 }
 
-bool WINAPI _export protect(HANDLE h, bool on)
+bool WINAPI _export fdi_protect(HANDLE h, bool on)
 {
-  Filer* f = (Filer*)h;
+  FilerFDI* f = (FilerFDI*)h;
   return f->protect(on);
 }

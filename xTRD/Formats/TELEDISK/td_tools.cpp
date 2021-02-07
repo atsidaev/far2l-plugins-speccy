@@ -2,6 +2,7 @@
 #include "td_tools.hpp"
 #include "td_types.hpp"
 #include "teledisk.hpp"
+#include "../../../shared/widestring.hpp"
 
 HANDLE   td;
 char     tdFileName[300];
@@ -25,7 +26,7 @@ bool nextVolume(void)
   CloseHandle(td);
   // меняем расширение
   tdFileName[strlen(tdFileName)-1]++;
-  td = CreateFile(tdFileName,
+  td = CreateFile(_W(tdFileName).c_str(),
                   GENERIC_READ,
                   FILE_SHARE_READ,
                   NULL,
@@ -45,7 +46,7 @@ bool nextVolume(void)
      tmpHdr.volumeId == imgHdr.volumeId &&
      tmpHdr.volume   == imgHdr.volume + 1)
   {
-    CopyMemory(&imgHdr, &tmpHdr, sizeof(ImageHdr));
+    memcpy(&imgHdr, &tmpHdr, sizeof(ImageHdr));
     return true;
   }
   else
@@ -180,9 +181,9 @@ void reconst(void)
     for(k = j - 1; f < freq[k]; k--);
     k++;
     l = (j - k) * 2;
-    MoveMemory(&freq[k + 1], &freq[k], l);
+    memcpy(&freq[k + 1], &freq[k], l);
     freq[k] = f;
-    MoveMemory(&son[k + 1], &son[k], l);
+    memcpy(&son[k + 1], &son[k], l);
     son[k] = i;
   }
   /* connect prnt */
@@ -316,9 +317,9 @@ bool unLZH(BYTE* buf, WORD size)
     WORD realSize = unLZH_internal(oldPtr, size);
     oldSize += realSize;
   }
-  CopyMemory(buf, tmpBuf, size);
+  memcpy(buf, tmpBuf, size);
   oldSize -= size;
-  MoveMemory(tmpBuf,  tmpBuf+size, oldSize);
+  memcpy(tmpBuf,  tmpBuf+size, oldSize);
   oldPtr = tmpBuf+oldSize;
   
   return true;
@@ -338,7 +339,7 @@ bool unRLE (BYTE* packedSec, short secSize, BYTE* sec)
   switch(packedSec[0])
   {
     case 0:
-              CopyMemory(sec, packedSec+1, secSize-1);
+              memcpy(sec, packedSec+1, secSize-1);
               return true;
     case 1:
               {
@@ -393,7 +394,7 @@ bool unRLE (BYTE* packedSec, short secSize, BYTE* sec)
 void td_init(HANDLE hostFile, const char* fileName, ImageHdr imgHdr_, bool isPacked_)
 {
   td = hostFile;
-  lstrcpy(tdFileName, fileName);
+  strcpy(tdFileName, fileName);
   imgHdr = imgHdr_;
   isPacked = isPacked_;
 

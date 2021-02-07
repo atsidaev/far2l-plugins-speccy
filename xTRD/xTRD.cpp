@@ -9,6 +9,9 @@
 #include "types.hpp"
 #include "lang.hpp"
 
+#include <string>
+#include "widestring.hpp"
+
 PluginStartupInfo    startupInfo;
 Options              op;
 
@@ -21,32 +24,32 @@ void WINAPI _export SetStartupInfo(PluginStartupInfo *info)
   // получили свою копию PluginStartupInfo
   startupInfo = *info;
 
-  reg                    = new Registry(startupInfo.RootKey);
+  reg                    = new Registry((char*)startupInfo.RootKey, L"/ZX/xTRD/");
   
   op.reread              = false;
-  op.showExt             = reg->getNumber(HKEY_CURRENT_USER, "ShowExt",            1);
-  op.defaultPanelMode    = reg->getNumber(HKEY_CURRENT_USER, "DefaultPanelMode",   5);
-  op.defaultFormat       = reg->getNumber(HKEY_CURRENT_USER, "DefaultFormat",      1);
-  op.detectFormat        = reg->getNumber(HKEY_CURRENT_USER, "DetectFormat",       1);
-  op.autoMove            = reg->getNumber(HKEY_CURRENT_USER, "AutoMove",           1);
-  op.useDS               = reg->getNumber(HKEY_CURRENT_USER, "UseDS",              1);
+  op.showExt             = reg->getNumber(HKEY_CURRENT_USER, L"ShowExt",            1);
+  op.defaultPanelMode    = reg->getNumber(HKEY_CURRENT_USER, L"DefaultPanelMode",   5);
+  op.defaultFormat       = reg->getNumber(HKEY_CURRENT_USER, L"DefaultFormat",      1);
+  op.detectFormat        = reg->getNumber(HKEY_CURRENT_USER, L"DetectFormat",       1);
+  op.autoMove            = reg->getNumber(HKEY_CURRENT_USER, L"AutoMove",           1);
+  op.useDS               = reg->getNumber(HKEY_CURRENT_USER, L"UseDS",              1);
 
   char cmdLine1[300] = "c:\\dir1\\emul1.exe %P [%N]";
   char cmdLine2[300] = "c:\\dir2\\emul2.exe %d \"%f\"";
   char types1[100] = "Bb";
   char types2[100] = "*";
-  reg->getString(HKEY_CURRENT_USER, "CmdLine1", op.cmdLine1, cmdLine1, 300);
-  reg->getString(HKEY_CURRENT_USER, "CmdLine2", op.cmdLine2, cmdLine2, 300);
-  reg->getString(HKEY_CURRENT_USER, "Types1",   op.types1,   types1,   100);
-  reg->getString(HKEY_CURRENT_USER, "Types2",   op.types2,   types2,   100);
-  op.fullScreen1 = reg->getNumber(HKEY_CURRENT_USER, "FullScreen1", 0);
-  op.fullScreen2 = reg->getNumber(HKEY_CURRENT_USER, "FullScreen2", 0);
+  reg->getString(HKEY_CURRENT_USER, L"CmdLine1", op.cmdLine1, cmdLine1, 300);
+  reg->getString(HKEY_CURRENT_USER, L"CmdLine2", op.cmdLine2, cmdLine2, 300);
+  reg->getString(HKEY_CURRENT_USER, L"Types1",   op.types1,   types1,   100);
+  reg->getString(HKEY_CURRENT_USER, L"Types2",   op.types2,   types2,   100);
+  op.fullScreen1 = reg->getNumber(HKEY_CURRENT_USER, L"FullScreen1", 0);
+  op.fullScreen2 = reg->getNumber(HKEY_CURRENT_USER, L"FullScreen2", 0);
 
   char iniFilePath[300] = "";
-  reg->getString(HKEY_CURRENT_USER, "IniFilePath", op.iniFilePath, iniFilePath, 300);
+  reg->getString(HKEY_CURRENT_USER, L"IniFilePath", op.iniFilePath, iniFilePath, 300);
   
   detector            = new Detector (startupInfo.ModuleName);
-  fmtReader           = new FmtReader(startupInfo.ModuleName);
+  fmtReader           = new FmtReader();
 }
 
 void WINAPI _export ExitFAR()
@@ -59,10 +62,10 @@ void WINAPI _export ExitFAR()
 HANDLE WINAPI _export OpenFilePlugin(char *name, const unsigned char *data, int dataSize)
 {
   if(name == NULL) return INVALID_HANDLE_VALUE;
-  
+
   FmtPlugin* format = fmtReader->isImage(name, data, dataSize);
   if(format == NULL) return INVALID_HANDLE_VALUE;
-  
+    
   Manager *m = new Manager(name, format);
   return (HANDLE)m;
 }
@@ -72,7 +75,9 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom, int Item)
   if(OpenFrom != OPEN_COMMANDLINE) return INVALID_HANDLE_VALUE;
   char *fileName = (char*)Item;
 
-  HANDLE hostFile = CreateFile(fileName,
+  auto wideFileName = _W(fileName);
+
+  HANDLE hostFile = CreateFile(wideFileName.c_str(),
                                GENERIC_READ,
                                FILE_SHARE_READ | FILE_SHARE_WRITE,
                                NULL,
@@ -152,7 +157,7 @@ int WINAPI _export ProcessEvent(HANDLE hPlugin, int event, void *param)
     startupInfo.Control(hPlugin, FCTL_GETPANELINFO, &panel);
     
     op.defaultPanelMode = panel.ViewMode;
-    reg->setNumber(HKEY_CURRENT_USER, "DefaultPanelMode", panel.ViewMode);
+    reg->setNumber(HKEY_CURRENT_USER, L"DefaultPanelMode", panel.ViewMode);
   }
 
   return FALSE;
@@ -262,30 +267,30 @@ int WINAPI _export Configure(int itemNum)
   if(dlgItems[6].Selected) op.defaultFormat = 1;
   if(dlgItems[7].Selected) op.defaultFormat = 2;
 
-  lstrcpy(op.types1,   dlgItems[12].Data);
-  lstrcpy(op.cmdLine1, dlgItems[14].Data);
+  strcpy(op.types1,   dlgItems[12].Data);
+  strcpy(op.cmdLine1, dlgItems[14].Data);
   op.fullScreen1     = dlgItems[15].Selected;
   
-  lstrcpy(op.types2,   dlgItems[18].Data);
-  lstrcpy(op.cmdLine2, dlgItems[20].Data);
+  strcpy(op.types2,   dlgItems[18].Data);
+  strcpy(op.cmdLine2, dlgItems[20].Data);
   op.fullScreen2     = dlgItems[21].Selected;
 
-  lstrcpy(op.iniFilePath, dlgItems[24].Data);
+  strcpy(op.iniFilePath, dlgItems[24].Data);
   
-  reg->setNumber(HKEY_CURRENT_USER, "DetectFormat",  op.detectFormat);
-  reg->setNumber(HKEY_CURRENT_USER, "ShowExt",       op.showExt);
-  reg->setNumber(HKEY_CURRENT_USER, "DefaultFormat", op.defaultFormat);
-  reg->setNumber(HKEY_CURRENT_USER, "AutoMove",      op.autoMove);
-  reg->setNumber(HKEY_CURRENT_USER, "UseDS",         op.useDS);
+  reg->setNumber(HKEY_CURRENT_USER, L"DetectFormat",  op.detectFormat);
+  reg->setNumber(HKEY_CURRENT_USER, L"ShowExt",       op.showExt);
+  reg->setNumber(HKEY_CURRENT_USER, L"DefaultFormat", op.defaultFormat);
+  reg->setNumber(HKEY_CURRENT_USER, L"AutoMove",      op.autoMove);
+  reg->setNumber(HKEY_CURRENT_USER, L"UseDS",         op.useDS);
   
-  reg->setNumber(HKEY_CURRENT_USER, "FullScreen1",   op.fullScreen1);
-  reg->setNumber(HKEY_CURRENT_USER, "FullScreen2",   op.fullScreen2);
-  reg->setString(HKEY_CURRENT_USER, "CmdLine1",      op.cmdLine1);
-  reg->setString(HKEY_CURRENT_USER, "CmdLine2",      op.cmdLine2);
-  reg->setString(HKEY_CURRENT_USER, "Types1",        op.types1);
-  reg->setString(HKEY_CURRENT_USER, "Types2",        op.types2);
+  reg->setNumber(HKEY_CURRENT_USER, L"FullScreen1",   op.fullScreen1);
+  reg->setNumber(HKEY_CURRENT_USER, L"FullScreen2",   op.fullScreen2);
+  reg->setString(HKEY_CURRENT_USER, L"CmdLine1",      op.cmdLine1);
+  reg->setString(HKEY_CURRENT_USER, L"CmdLine2",      op.cmdLine2);
+  reg->setString(HKEY_CURRENT_USER, L"Types1",        op.types1);
+  reg->setString(HKEY_CURRENT_USER, L"Types2",        op.types2);
 
-  reg->setString(HKEY_CURRENT_USER, "IniFilePath",   op.iniFilePath);
+  reg->setString(HKEY_CURRENT_USER, L"IniFilePath",   op.iniFilePath);
   
   return TRUE;
 }

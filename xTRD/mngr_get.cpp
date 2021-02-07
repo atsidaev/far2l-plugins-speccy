@@ -1,10 +1,12 @@
 #include <windows.h>
-#include "plugin.hpp"
+#include "pluginold.hpp"
 
 #include "manager.hpp"
 #include "types.hpp"
 #include "tools.hpp"
 #include "lang.hpp"
+
+#include "widestring.hpp"
 
 extern PluginStartupInfo startupInfo;
 extern Options           op;
@@ -33,7 +35,7 @@ ExitCode createFile(char* name)
 {
   // проверяем наличие файла
   WIN32_FIND_DATA data;
-  HANDLE h = FindFirstFile(name, &data);
+  HANDLE h = FindFirstFile(_W(name).c_str(), &data);
   if(h != INVALID_HANDLE_VALUE)
   {
     // файл с таким именем существует
@@ -59,7 +61,7 @@ ExitCode createFile(char* name)
       if(data.ftLastWriteTime.dwLowDateTime == 0 &&
          data.ftLastWriteTime.dwHighDateTime == 0)
       {
-        wsprintf(param, getMsg(MDestination1), data.nFileSizeLow);
+        sprintf(param, getMsg(MDestination1), data.nFileSizeLow);
       }
       else
       {
@@ -69,7 +71,7 @@ ExitCode createFile(char* name)
         SYSTEMTIME time;
         FileTimeToSystemTime(&lastWriteTime, &time);
         
-        wsprintf(param, getMsg(MDestination2),
+        sprintf(param, getMsg(MDestination2),
                  data.nFileSizeLow,
                  time.wDay, time.wMonth, time.wYear,
                  time.wHour, time.wMinute, time.wSecond);
@@ -92,7 +94,7 @@ ExitCode createFile(char* name)
       }
     }
   }
-  file = CreateFile(name,
+  file = CreateFile(_W(name).c_str(),
                     GENERIC_WRITE,
                     FILE_SHARE_READ,
                     NULL,
@@ -115,7 +117,7 @@ ExitCode Manager::getFile(int fNum, bool isMove, char* to)
   ExitCode exitCode = OK;
 
   char name[300];
-  wsprintf(name, "%s%s", to, pcFiles[fNum].name);
+  sprintf(name, "%s%s", to, pcFiles[fNum].name);
   
   char* msgItems[3];
   msgItems[0] = getMsg(MCopyingFile);
@@ -138,7 +140,7 @@ ExitCode Manager::getFile(int fNum, bool isMove, char* to)
   if(scl)
   {
     hdrs= (BYTE*)realloc(hdrs,   (noFilesWritten+1)*sizeof(SCLHdr));
-    CopyMemory(hdrs+noFilesWritten*sizeof(SCLHdr), &files[fNum], sizeof(SCLHdr));
+    memcpy(hdrs+noFilesWritten*sizeof(SCLHdr), &files[fNum], sizeof(SCLHdr));
     if(files[fNum].noSecs)
     {
       bodies = (BYTE*)realloc(bodies, bodiesSize+sectorSize*(files[fNum].noSecs-1)+lastPartSize);
@@ -150,20 +152,20 @@ ExitCode Manager::getFile(int fNum, bool isMove, char* to)
       {
         read(trk, sec, sector);
         if(++sec == 16) { trk++; sec = 0; }
-        CopyMemory(ptr, sector, sectorSize);
+        memcpy(ptr, sector, sectorSize);
         ptr        += sectorSize;
         bodiesSize += sectorSize;
       }
       // обрабатываем последний сектор хитрым образом
       read(trk, sec, sector);
-      CopyMemory(ptr, sector, lastPartSize);
+      memcpy(ptr, sector, lastPartSize);
       bodiesSize += lastPartSize;
     }
     ++noFilesWritten;
   }
   else
   {
-    if(skipHeaders) lstrcat(name, ".bin");
+    if(skipHeaders) strcat(name, ".bin");
     ExitCode code = createFile(name);
     if(code != OK) return code;
 
@@ -171,7 +173,7 @@ ExitCode Manager::getFile(int fNum, bool isMove, char* to)
     if(!skipHeaders)
     {
       HoHdr hdr;
-      CopyMemory(hdr.name, files[fNum].name, 8);
+      memcpy(hdr.name, files[fNum].name, 8);
 
       hdr.type     = files[fNum].type;
       hdr.start    = files[fNum].start;
@@ -215,12 +217,12 @@ ExitCode Manager::getFolder(int fNum, bool isMove, char* to)
   ExitCode exitCode = OK;
 
   char dest[300];
-  lstrcpy(dest, to);
+  strcpy(dest, to);
   if(!skipPathnames)
   {
-    lstrcat(dest, pcFolders[fNum-1]);
+    strcat(dest, pcFolders[fNum-1]);
     addEndSlash(dest);
-    CreateDirectory(dest, NULL);
+    CreateDirectory(_W(dest).c_str(), NULL);
   }
   // копируем вложенные каталоги
   for(int i = 0; i < noFolders; ++i)
@@ -281,16 +283,16 @@ int Manager::getFiles(PluginPanelItem *panelItem,
   button[0] = getMsg(MCopyButton);
   button[1] = getMsg(MMoveButton);
   if(noItems == 1)
-    wsprintf(msg, getMsg(MFileTo), action2[!!isMove], panelItem[0].FindData.cFileName);
+    sprintf(msg, getMsg(MFileTo), action2[!!isMove], panelItem[0].FindData.cFileName);
   else
-    wsprintf(msg, getMsg(MFilesTo), action2[!!isMove], noItems);
+    sprintf(msg, getMsg(MFilesTo), action2[!!isMove], noItems);
 
-  char historyName[] = "xTRD_copy_path";
+  const char* historyName = "xTRD_copy_path";
   
   InitDialogItem items[]={
     DI_DOUBLEBOX,3,1,72,12,0,0,0,0, action[!!isMove],
     DI_TEXT,5,2,0,0,0,0,0,0,msg,
-    DI_EDIT,5,3,70,0,1,(int)historyName,DIF_HISTORY,0,destPath,
+    DI_EDIT,5,3,70,0,1,(DWORD_PTR)historyName,DIF_HISTORY,0,destPath,
     DI_TEXT,3,4,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,"",
     DI_RADIOBUTTON,5,5,0,0,0,0,DIF_GROUP,0,(char*)MHoBeta,
     DI_RADIOBUTTON,5,6,0,0,0,0,0,0,(char*)MSCL,
@@ -302,8 +304,9 @@ int Manager::getFiles(PluginPanelItem *panelItem,
     DI_BUTTON,0,11,0,0,0,0,DIF_CENTERGROUP,0,(char*)MCancel
   };
   
-  FarDialogItem dialogItems[sizeof(items)/sizeof(items[0])];
-  initDialogItems(items, dialogItems, sizeof(items)/sizeof(items[0]));
+  FarDialogItem dialogItems[ARRAYSIZE(items)];
+  memset(dialogItems, 0, sizeof(FarDialogItem) * ARRAYSIZE(items));
+  initDialogItems(items, dialogItems, ARRAYSIZE(items));
   
   switch(op.defaultFormat)
   {
@@ -332,9 +335,9 @@ int Manager::getFiles(PluginPanelItem *panelItem,
                                      -1, -1, 76, 14,
                                      NULL,
                                      dialogItems,
-                                     sizeof(dialogItems)/sizeof(dialogItems[0]));
+                                     ARRAYSIZE(dialogItems));
     if(askCode != 10) return -1;
-    lstrcpy(destPath, dialogItems[2].Data);
+    strcpy(destPath, dialogItems[2].Data);
     
     scl           = !dialogItems[4].Selected;
     skipHeaders   =  dialogItems[7].Selected;
@@ -342,23 +345,23 @@ int Manager::getFiles(PluginPanelItem *panelItem,
   }
   
   // если пользователь хочет, то создадим каталоги
-  if(GetFileAttributes(destPath)==0xFFFFFFFF)
+  if(GetFileAttributes(_W(destPath).c_str())==0xFFFFFFFF)
     for(char *c=destPath; *c; c++)
     {
       if(*c!=' ')
       {
         for(; *c; c++)
-          if(*c=='\\')
+          if(*c=='/')
           {
             *c=0;
-            CreateDirectory(destPath, NULL);
-            *c='\\';
+            CreateDirectory(_W(destPath).c_str(), NULL);
+            *c='/';
           }
-        CreateDirectory(destPath, NULL);
+        CreateDirectory(_W(destPath).c_str(), NULL);
         break;
       }
     }
-  if(*destPath && destPath[lstrlen(destPath)-1] != ':') addEndSlash(destPath);
+  if(*destPath && destPath[strlen(destPath)-1] != ':') addEndSlash(destPath);
 
   if(!openHostFile()) return 0;
 
@@ -370,16 +373,16 @@ int Manager::getFiles(PluginPanelItem *panelItem,
     noFilesWritten = 0;
     
     char name[300];
-    wsprintf(name, "%s%s", destPath, panelItem[0].FindData.cFileName);
+    sprintf(name, "%s%s", destPath, panelItem[0].FindData.cFileName);
     
     char* ptr = pointToName(name);
     while(*ptr && *ptr != '.') ++ptr;
     *ptr = 0;
     
     if(skipHeaders)
-      lstrcat(name, ".bin");
+      strcat(name, ".bin");
     else
-      lstrcat(name, ".scl");
+      strcat(name, ".scl");
     
     ExitCode code = createFile(name);
     
@@ -403,14 +406,14 @@ int Manager::getFiles(PluginPanelItem *panelItem,
       for(fNum = 0; fNum < noFolders; ++fNum)
       {
         if(folderMap[fNum] != curFolderNum) continue;
-        if(!lstrcmp(pcFolders[fNum], panelItem[iNum].FindData.cFileName)) break;
+        if(!strcmp(pcFolders[fNum], panelItem[iNum].FindData.cFileName)) break;
       }
       exitCode = getFolder(fNum+1, isMove, destPath);
     }
     else
     {
       for(fNum = 0; fNum < noFiles; ++fNum)
-        if(!lstrcmp(panelItem[iNum].FindData.cFileName, pcFiles[fNum].name)) break;
+        if(!strcmp(panelItem[iNum].FindData.cFileName, pcFiles[fNum].name)) break;
 
       // просмотр текстовых файлов без заголовка
       if(noItems == 1 && ((opMode & OPM_VIEW) || (opMode & OPM_EDIT)) && pcFiles[fNum].skipHeader) skipHeaders = true;

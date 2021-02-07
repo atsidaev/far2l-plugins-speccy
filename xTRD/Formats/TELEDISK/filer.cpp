@@ -2,24 +2,25 @@
 #include "filer.hpp"
 #include "teledisk.hpp"
 #include "td_tools.hpp"
+#include "../../../shared/widestring.hpp"
 
-Filer::Filer(const char* fileName)
+FilerTD::FilerTD(const char* fileName)
 {
-  lstrcpy(fName, fileName);
+  strcpy(fName, fileName);
   imageBuf = new BYTE[166*16*sectorSize];
-  ZeroMemory(masks, sizeof(masks));
+  memset(masks, 0, sizeof(masks));
 }
 
-Filer::~Filer()
+FilerTD::~FilerTD()
 {
   delete[] imageBuf;
 }
 
-bool Filer::reload(void)
+bool FilerTD::reload(void)
 {
   open();
   
-  ZeroMemory(masks, sizeof(masks));
+  memset(masks, 0, sizeof(masks));
 
   ImageHdr imgHdr;
   
@@ -85,9 +86,9 @@ error:
   return false;
 }
 
-bool Filer::open(void)
+bool FilerTD::open(void)
 {
-  hostFile = CreateFile(fName,
+  hostFile = CreateFile(_W(fName).c_str(),
                         GENERIC_READ,
                         FILE_SHARE_READ | FILE_SHARE_WRITE,
                         NULL,
@@ -97,15 +98,15 @@ bool Filer::open(void)
   return (hostFile != INVALID_HANDLE_VALUE);
 }
 
-bool Filer::close(void)
+bool FilerTD::close(void)
 {
   return CloseHandle(hostFile);
 }
 
-bool Filer::read(BYTE trk, BYTE sec, BYTE* buf)
+bool FilerTD::read(BYTE trk, BYTE sec, BYTE* buf)
 {
-  ZeroMemory(buf, sectorSize);
+  memset(buf, 0, sectorSize);
   if(!(masks[trk] & 1<<sec)) return false;
-  CopyMemory(buf, imageBuf + sectorSize*(16*trk + sec), sectorSize);
+  memcpy(buf, imageBuf + sectorSize*(16*trk + sec), sectorSize);
   return true;
 }

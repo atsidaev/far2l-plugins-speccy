@@ -4,6 +4,8 @@
 
 const int sectorSize = 0x100;
 
+#pragma pack(1)
+
 struct FileHdr
 {
   char name[8];
@@ -61,6 +63,8 @@ struct DSHdr
   char signature[6+3];
 };
 
+#pragma pack()
+
 struct Options
 {
   bool useDS;
@@ -86,10 +90,10 @@ struct InitDialogItem
   unsigned char Type;
   unsigned char X1,Y1,X2,Y2;
   unsigned char Focus;
-  unsigned int  Selected;
-  unsigned int  Flags;
+  DWORD_PTR Selected;
+  unsigned int Flags;
   unsigned char DefaultButton;
-  char         *Data;
+  const char *Data;
 };
 
 enum ExitCode { OK, SKIP, CANCEL };

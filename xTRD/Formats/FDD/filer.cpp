@@ -1,10 +1,11 @@
 #include <windows.h>
 #include "filer.hpp"
 #include "fdd.hpp"
+#include "../../../shared/widestring.hpp"
 
-Filer::Filer(const char* fileName)
+FilerFDD::FilerFDD(const char* fileName)
 {
-  lstrcpy(fName, fileName);
+  strcpy(fName, fileName);
   open();
 
   DWORD noBytesRead;
@@ -13,7 +14,7 @@ Filer::Filer(const char* fileName)
   
   maxSec = 16*hFDD.noCyls*hFDD.noHeads;
   secs = new DWORD[maxSec];
-  ZeroMemory(secs, maxSec);
+  memset(secs, 0, maxSec);
   
   for(int trk = 0; trk < hFDD.noCyls*hFDD.noHeads; ++trk)
   {
@@ -32,17 +33,17 @@ Filer::Filer(const char* fileName)
   close();
 }
 
-Filer::~Filer()
+FilerFDD::~FilerFDD()
 {
   delete[] secs;
 }
 
-bool Filer::open(void)
+bool FilerFDD::open(void)
 {
   DWORD mode = GENERIC_READ | GENERIC_WRITE;
-  DWORD attr = GetFileAttributes(fName);
+  DWORD attr = GetFileAttributes(_W(fName).c_str());
   if(attr & FILE_ATTRIBUTE_READONLY) mode = GENERIC_READ;
-  hostFile = CreateFile(fName,
+  hostFile = CreateFile(_W(fName).c_str(),
                         mode,
                         FILE_SHARE_READ | FILE_SHARE_WRITE,
                         NULL,
@@ -52,14 +53,14 @@ bool Filer::open(void)
   return (hostFile != INVALID_HANDLE_VALUE);
 }
 
-bool Filer::close(void)
+bool FilerFDD::close(void)
 {
   return CloseHandle(hostFile);
 }
 
-bool Filer::read(BYTE trk, BYTE sec, BYTE* buf)
+bool FilerFDD::read(BYTE trk, BYTE sec, BYTE* buf)
 {
-  ZeroMemory(buf, sectorSize);
+  memset(buf, 0, sectorSize);
   if(!secs[16*trk+sec] || 16*trk+sec >= maxSec) return false;
   SetFilePointer(hostFile, secs[16*trk+sec], NULL, FILE_BEGIN);
   DWORD noBytesRead;
@@ -67,7 +68,7 @@ bool Filer::read(BYTE trk, BYTE sec, BYTE* buf)
   return (noBytesRead == sectorSize);
 }
 
-bool Filer::write(BYTE trk, BYTE sec, BYTE* buf)
+bool FilerFDD::write(BYTE trk, BYTE sec, BYTE* buf)
 {
   if(!secs[16*trk+sec] || 16*trk+sec >= maxSec) return false;
   SetFilePointer(hostFile, secs[16*trk+sec], NULL, FILE_BEGIN);
@@ -76,19 +77,19 @@ bool Filer::write(BYTE trk, BYTE sec, BYTE* buf)
   return (noBytesWritten == sectorSize);
 }
 
-bool Filer::isProtected(void)
+bool FilerFDD::isProtected(void)
 {
-  DWORD attr = GetFileAttributes(fName);
+  DWORD attr = GetFileAttributes(_W(fName).c_str());
   return (attr & FILE_ATTRIBUTE_READONLY);
 }
 
-bool Filer::protect(bool on)
+bool FilerFDD::protect(bool on)
 {
-  DWORD attr = GetFileAttributes(fName);
+  DWORD attr = GetFileAttributes(_W(fName).c_str());
   if(on)
     attr |= FILE_ATTRIBUTE_READONLY;
   else
     attr &= ~FILE_ATTRIBUTE_READONLY;
 
-  return (SetFileAttributes(fName, attr));
+  return (SetFileAttributes(_W(fName).c_str(), attr));
 }

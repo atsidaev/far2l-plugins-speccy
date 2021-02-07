@@ -1,5 +1,6 @@
 #include <windows.h>
-#include "plugin.hpp"
+#include "pluginold.hpp"
+using namespace oldfar;
 
 extern PluginStartupInfo startupInfo;
 
@@ -17,7 +18,7 @@ void debugMsg(char *msg, int arg)
 {
   char *msgItems[]={"Debug", "", "", "Ok"};
   char line2[40];
-  wsprintf(line2, "%d   0x%x", arg, arg);
+  sprintf(line2, "%d   0x%x", arg, arg);
   msgItems[1] = msg;
   msgItems[2] = line2;
   startupInfo.Message(startupInfo.ModuleNumber,

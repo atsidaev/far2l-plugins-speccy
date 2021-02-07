@@ -1,10 +1,10 @@
 #ifndef FMTREADER_HPP
 #define FMTREADER_HPP
 #include <windows.h>
-#include "plugin.hpp"
+#include "pluginold.hpp"
 
-typedef bool   (WINAPI *IS_IMAGE)(char *name, const unsigned char* data, int size);
-typedef HANDLE (WINAPI *INIT)    (char* fileName);
+typedef bool   (WINAPI *IS_IMAGE)(const char *name, const unsigned char* data, int size);
+typedef HANDLE (WINAPI *INIT)    (const char* fileName);
 typedef bool   (WINAPI *CLEANUP) (HANDLE);
 typedef bool   (WINAPI *RELOAD)  (HANDLE);
 typedef bool   (WINAPI *OPEN)    (HANDLE);
@@ -37,11 +37,12 @@ struct FmtPlugin
 class FmtReader
 {
  public:
-   FmtReader         (char *path);
+   FmtReader         ();
    ~FmtReader        ();
    FmtPlugin *isImage(char *fileName, const BYTE *data, int size);
  private:
-   int noPlugins;
+//   FmtReader         (char *path);
+   int noPlugins = 0;
    FmtPlugin plugins[16];
 };
 

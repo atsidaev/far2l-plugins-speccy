@@ -1,6 +1,7 @@
 #ifndef xTRD_HPP
 #define xTRD_HPP
-#include "plugin.hpp"
+#include "pluginold.hpp"
+using namespace oldfar;
 #include "types.hpp"
 
 extern "C" {

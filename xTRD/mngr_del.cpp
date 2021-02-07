@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "plugin.hpp"
+#include "pluginold.hpp"
 
 #include "manager.hpp"
 #include "types.hpp"
@@ -60,8 +60,8 @@ void Manager::move(void)
             if(++fromSec == 16) { fromTrk++; fromSec = 0; }
             if(++toSec   == 16) { toTrk++;   toSec = 0; }
           }
-          CopyMemory(&files[toFileNum], &files[i], sizeof(FileHdr));
-          CopyMemory(&pcFiles[toFileNum], &pcFiles[i], sizeof(ExtFileHdr));
+          memcpy(&files[toFileNum], &files[i], sizeof(FileHdr));
+          memcpy(&pcFiles[toFileNum], &pcFiles[i], sizeof(ExtFileHdr));
           if(dsOk) fileMap[toFileNum] = fileMap[i];
         }
         ++toFileNum;
@@ -95,8 +95,8 @@ void Manager::move(void)
         for(int j = 0; j < noFolders; ++j)
           if(folderMap[j] >= i+1) --folderMap[j];
 
-        CopyMemory(&folders[i], &folders[i+1], 11*(noFolders-i-1));
-        CopyMemory(folderMap+i, folderMap+i+1, noFolders-i-1);
+        memcpy(&folders[i], &folders[i+1], 11*(noFolders-i-1));
+        memcpy(folderMap+i, folderMap+i+1, noFolders-i-1);
         --i;
         --no_folders;
       }
@@ -133,10 +133,10 @@ ExitCode Manager::markFolder(int fNum)
       while(parentFolder)
       {
         if(temp[0])
-          wsprintf(folderName, "%s\\%s", pcFolders[parentFolder-1], temp);
+          sprintf(folderName, "%s/%s", pcFolders[parentFolder-1], temp);
         else
-          wsprintf(folderName, "%s", pcFolders[parentFolder-1]);
-        lstrcpy(temp, folderName);
+          sprintf(folderName, "%s", pcFolders[parentFolder-1]);
+        strcpy(temp, folderName);
         parentFolder = folderMap[parentFolder-1];
       }
       
@@ -210,9 +210,9 @@ int Manager::deleteFiles(PluginPanelItem *panelItem, int noItems, int opMode)
     msgItems[4] = getMsg(MCancel);
     char msg[30];
     if(noItems == 1)
-      wsprintf(msg, "%s", panelItem[0].FindData.cFileName);
+      sprintf(msg, "%s", panelItem[0].FindData.cFileName);
     else
-      wsprintf(msg, getMsg(MDelFiles), noItems);
+      sprintf(msg, getMsg(MDelFiles), noItems);
     
     msgItems[2] = msg;
     if(messageBox(0, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 2)!=0)
@@ -226,7 +226,7 @@ int Manager::deleteFiles(PluginPanelItem *panelItem, int noItems, int opMode)
       msgItems[4] = getMsg(MCancel);
 
       char msg[30];
-      wsprintf(msg, getMsg(MDelFiles), noItems);
+      sprintf(msg, getMsg(MDelFiles), noItems);
       msgItems[2] = msg;
       if(messageBox(FMSG_WARNING, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 2)!=0)
         return FALSE;
@@ -244,7 +244,7 @@ int Manager::deleteFiles(PluginPanelItem *panelItem, int noItems, int opMode)
       for(; j < noFolders; ++j)
       {
         if(folderMap[j] != curFolderNum) continue;
-        if(!lstrcmp(pcFolders[j], panelItem[i].FindData.cFileName)) break;
+        if(!strcmp(pcFolders[j], panelItem[i].FindData.cFileName)) break;
       }
       ExitCode code = markFolder(j+1);
       if(code != OK) allOk = false;
@@ -254,7 +254,7 @@ int Manager::deleteFiles(PluginPanelItem *panelItem, int noItems, int opMode)
     {
       for(int j = 0; j < noFiles; ++j)
       {
-        if(!lstrcmp(pcFiles[j].name, panelItem[i].FindData.cFileName))
+        if(!strcmp(pcFiles[j].name, panelItem[i].FindData.cFileName))
         {
           if(files[j].name[0] != 0x01) ++noDelFiles;
           files[j].name[0] = 0x01;

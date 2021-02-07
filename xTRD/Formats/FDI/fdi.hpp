@@ -3,6 +3,8 @@
 
 const unsigned short sectorSize = 0x100;
 
+#pragma pack(1)
+
 struct FDIHdr
 {
   char signature[3];
@@ -27,5 +29,7 @@ struct TrackHdr
   WORD  reserved;
   BYTE  noSecs;
 };
+
+#pragma pack()
 
 #endif

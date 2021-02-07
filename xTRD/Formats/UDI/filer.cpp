@@ -20,7 +20,7 @@ WORD wdcrc(unsigned char *ptr, WORD size, BYTE dataId)
    return (WORD) (((crc1 & 0xFF00) >> 8) | ((crc1 & 0xFF) << 8));
 }
 
-Filer::Filer(const char* fileName)
+FilerUDI::FilerUDI(const char* fileName)
 {
   lstrcpy(fName, fileName);
   open();
@@ -86,12 +86,12 @@ Filer::Filer(const char* fileName)
   close();
 }
 
-Filer::~Filer()
+FilerUDI::~FilerUDI()
 {
   delete[] secs;
 }
 
-bool Filer::open(void)
+bool FilerUDI::open(void)
 {
   DWORD mode = GENERIC_READ | GENERIC_WRITE;
   DWORD attr = GetFileAttributes(fName);
@@ -107,7 +107,7 @@ bool Filer::open(void)
   return (hostFile != INVALID_HANDLE_VALUE);
 }
 
-bool Filer::close(void)
+bool FilerUDI::close(void)
 {
   if(isChanged)
   {
@@ -139,7 +139,7 @@ bool Filer::close(void)
   return CloseHandle(hostFile);
 }
 
-bool Filer::read(BYTE trk, BYTE sec, BYTE* buf)
+bool FilerUDI::read(BYTE trk, BYTE sec, BYTE* buf)
 {
   ZeroMemory(buf, sectorSize);
   if(!secs[16*trk+sec] || 16*trk+sec >= maxSec) return false;
@@ -149,7 +149,7 @@ bool Filer::read(BYTE trk, BYTE sec, BYTE* buf)
   return (noBytesRead == sectorSize);
 }
 
-bool Filer::write(BYTE trk, BYTE sec, BYTE* buf)
+bool FilerUDI::write(BYTE trk, BYTE sec, BYTE* buf)
 {
   if(!secs[16*trk+sec] || 16*trk+sec >= maxSec) return false;
   bool result;
@@ -172,13 +172,13 @@ bool Filer::write(BYTE trk, BYTE sec, BYTE* buf)
   return (result);
 }
 
-bool Filer::isProtected(void)
+bool FilerUDI::isProtected(void)
 {
   DWORD attr = GetFileAttributes(fName);
   return (attr & FILE_ATTRIBUTE_READONLY);
 }
 
-bool Filer::protect(bool on)
+bool FilerUDI::protect(bool on)
 {
   DWORD attr = GetFileAttributes(fName);
   if(on)
