@@ -1,5 +1,6 @@
 #include <windows.h>
-#include "plugin.hpp"
+#include <pluginold.hpp>
+using namespace oldfar;
 
 #include "manager.hpp"
 #include "detector.hpp"
@@ -7,6 +8,7 @@
 #include "tools.hpp"
 
 #include "debug.hpp"
+#include "../shared/widestring.hpp"
 
 extern Detector* detector;
 extern Options op;
@@ -16,14 +18,14 @@ bool Manager::openHostFile(void)
   isReadOnly = false;
   DWORD mode = GENERIC_READ | GENERIC_WRITE;
 
-  DWORD attr = GetFileAttributes(hostFileName);
+  DWORD attr = GetFileAttributes(_W(hostFileName).c_str());
   if(attr & FILE_ATTRIBUTE_READONLY)
   {
     mode = GENERIC_READ;
     isReadOnly = true;
   }
 
-  hostFile = CreateFile(hostFileName,
+  hostFile = CreateFile(_W(hostFileName).c_str(),
                         mode,
                         FILE_SHARE_READ | FILE_SHARE_WRITE,
                         NULL,
@@ -56,12 +58,12 @@ void Manager::makePCNames(void)
       --last;
     }
     BYTE  noChars = 0;
-    BYTE* from    = files[fNum].name;
-    BYTE* to      = pcFiles[fNum].name;
+    BYTE* from    = (BYTE*)files[fNum].name;
+    BYTE* to      = (BYTE*)pcFiles[fNum].name;
     
     if(first > last)
     {
-      FillMemory(to, 8, '_');
+      memset(to, '_', 8);
       noChars = 8;
     }
     else
@@ -76,12 +78,12 @@ void Manager::makePCNames(void)
     // обрабатываем специальные имена устройств
     if(noChars == 3 || noChars == 4)
     {
-      if(compareMemoryIgnoreCase(to, "com", 3) ||
-         compareMemoryIgnoreCase(to, "lpt", 3) ||
-         compareMemoryIgnoreCase(to, "prn", 3) ||
-         compareMemoryIgnoreCase(to, "con", 3) ||
-         compareMemoryIgnoreCase(to, "aux", 3) ||
-         compareMemoryIgnoreCase(to, "nul", 3)) to[noChars++] = '_';
+      if(compareMemoryIgnoreCase(to, (BYTE*)"com", 3) ||
+         compareMemoryIgnoreCase(to, (BYTE*)"lpt", 3) ||
+         compareMemoryIgnoreCase(to, (BYTE*)"prn", 3) ||
+         compareMemoryIgnoreCase(to, (BYTE*)"con", 3) ||
+         compareMemoryIgnoreCase(to, (BYTE*)"aux", 3) ||
+         compareMemoryIgnoreCase(to, (BYTE*)"nul", 3)) to[noChars++] = '_';
     }
     
     BYTE dotPos = noChars;
@@ -94,7 +96,7 @@ void Manager::makePCNames(void)
     if(op.detectFormat)
     {
       BYTE secs[16*256];
-      ZeroMemory(secs, 16*256);
+      memset(secs, 0, 16*256);
 
       int noSecs = files[fNum].noSecs;
       if(noSecs > 16) noSecs = 16;
@@ -114,26 +116,26 @@ void Manager::makePCNames(void)
 
     if(typeNum != 0xFF)
     {
-      detector->specialChar(typeNum, to+dotPos+1);
-      detector->getType(typeNum, to+dotPos+2);
+      detector->specialChar(typeNum, (char*)(to+dotPos+1));
+      detector->getType(typeNum, (char*)(to+dotPos+2));
       pcFiles[fNum].skipHeader = detector->getSkipHeader(typeNum);
     }
     // обрабатываем многотомные zxzip архивы
     if(fNum != 0 &&
-       compareMemory(from, "********ZIP", 11) &&
-       compareMemory(&files[fNum-1].type, "ZIP", 3))
+       compareMemory(from, (BYTE*)"********ZIP", 11) &&
+       compareMemory((BYTE*)&files[fNum-1].type, (BYTE*)"ZIP", 3))
     {
-      if(!compareMemory(files[fNum-1].name, "********", 8))
-        lstrcpy(to, pcFiles[fNum-1].name);
+      if(!compareMemory((BYTE*)files[fNum-1].name, (BYTE*)"********", 8))
+        strcpy((char*)to, pcFiles[fNum-1].name);
       else
-        lstrcpyn(to, pcFiles[fNum-1].name, lstrlen(pcFiles[fNum-1].name));
+        strncpy((char*)to, pcFiles[fNum-1].name, strlen(pcFiles[fNum-1].name));
     }
     // обрабатываем повторяющиеся имена
     int i = fNum;
     while(i-- > 0)
     {
-      int len = lstrlen(to);
-      if(compareMemoryIgnoreCase(to, pcFiles[i].name, len))
+      int len = strlen((char*)to);
+      if(compareMemoryIgnoreCase(to, (BYTE*)pcFiles[i].name, len))
       {
         BYTE ch = pcFiles[i].name[len];
         ch = (ch != 0) ? ch+1 : '0';
@@ -157,7 +159,7 @@ bool Manager::readInfo(void)
   
   // проверяем не изменился ли файл на диске
   WIN32_FIND_DATA data;
-  HANDLE h = FindFirstFile(hostFileName, &data);
+  HANDLE h = FindFirstFile(_W(hostFileName).c_str(), &data);
   if(h == INVALID_HANDLE_VALUE) return false;
   FindClose(h);
   

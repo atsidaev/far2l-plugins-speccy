@@ -1,10 +1,13 @@
 #include <windows.h>
-#include "plugin.hpp"
+#include <pluginold.hpp>
+using namespace oldfar;
 
 #include "manager.hpp"
 #include "types.hpp"
 #include "tools.hpp"
 #include "lang.hpp"
+
+#include "../shared/widestring.hpp"
 
 extern Options op;
 extern PluginStartupInfo startupInfo;
@@ -13,7 +16,7 @@ int Manager::createFile(HANDLE& file, char* name, int& action)
 {
   // проверяем наличие файла
   WIN32_FIND_DATA data;
-  HANDLE h = FindFirstFile(name, &data);
+  HANDLE h = FindFirstFile(_W(name).c_str(), &data);
   if(h != INVALID_HANDLE_VALUE)
   {
     // файл с таким именем существует
@@ -37,7 +40,7 @@ int Manager::createFile(HANDLE& file, char* name, int& action)
       if(data.ftLastWriteTime.dwLowDateTime == 0 &&
          data.ftLastWriteTime.dwHighDateTime == 0)
       {
-        wsprintf(param, getMsg(MDestination1), data.nFileSizeLow);
+        sprintf(param, getMsg(MDestination1), data.nFileSizeLow);
       }
       else
       {
@@ -47,7 +50,7 @@ int Manager::createFile(HANDLE& file, char* name, int& action)
         SYSTEMTIME time;
         FileTimeToSystemTime(&lastWriteTime, &time);
         
-        wsprintf(param, getMsg(MDestination2),
+        sprintf(param, getMsg(MDestination2),
                  data.nFileSizeLow,
                  time.wDay, time.wMonth, time.wYear,
                  time.wHour, time.wMinute, time.wSecond);
@@ -70,7 +73,7 @@ int Manager::createFile(HANDLE& file, char* name, int& action)
       }
     }
   }
-  file = CreateFile(name,
+  file = CreateFile(_W(name).c_str(),
                     GENERIC_WRITE,
                     FILE_SHARE_READ,
                     NULL,
@@ -118,19 +121,19 @@ int Manager::getFiles(PluginPanelItem *panelItem,
   button[0] = getMsg(MCopyButton);
   button[1] = getMsg(MMoveButton);
   if(noItems == 1)
-    wsprintf(msg,
+    sprintf(msg,
              getMsg(MFileTo),
              move ? action2[1] : action2[0],
              panelItem[0].FindData.cFileName);
   else
-    wsprintf(msg, getMsg(MFilesTo), move ? action2[1] : action2[0], noItems);
+    sprintf(msg, getMsg(MFilesTo), move ? action2[1] : action2[0], noItems);
 
   char historyName[] = "xSCL_copy_path";
   
   InitDialogItem items[]={
     DI_DOUBLEBOX,3,1,72,11,0,0,0,0, move ? action[1] : action[0],
     DI_TEXT,5,2,0,0,0,0,0,0,msg,
-    DI_EDIT,5,3,70,3,1,(int)historyName,DIF_HISTORY,0,destPath,
+    DI_EDIT,5,3,70,3,1,(DWORD_PTR)historyName,DIF_HISTORY,0,destPath,
     DI_TEXT,3,4,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,"",
     DI_RADIOBUTTON,5,5,0,0,0,0,DIF_GROUP,0,(char*)MHoBeta,
     DI_RADIOBUTTON,5,6,0,0,0,0,0,0,(char*)MSCL,
@@ -169,14 +172,14 @@ int Manager::getFiles(PluginPanelItem *panelItem,
                                      dialogItems,
                                      sizeof(dialogItems)/sizeof(dialogItems[0]));
     if(askCode != 9) return -1;
-    lstrcpy(destPath, dialogItems[2].Data);
+    strcpy(destPath, dialogItems[2].Data);
     
     singleFile  = (dialogItems[4].Selected == FALSE);
     skipHeader = dialogItems[7].Selected;
   }
   
   // если пользователь хочет, то создадим каталоги
-  if(GetFileAttributes(destPath)==0xFFFFFFFF)
+  if(GetFileAttributes(_W(destPath).c_str())==0xFFFFFFFF)
     for(char *c=destPath; *c; c++)
     {
       if(*c!=' ')
@@ -185,14 +188,14 @@ int Manager::getFiles(PluginPanelItem *panelItem,
           if(*c=='\\')
           {
             *c=0;
-            CreateDirectory(destPath, NULL);
+            CreateDirectory(_W(destPath).c_str(), NULL);
             *c='\\';
           }
-        CreateDirectory(destPath, NULL);
+        CreateDirectory(_W(destPath).c_str(), NULL);
         break;
       }
     }
-  if(*destPath && destPath[lstrlen(destPath)-1] != ':') addEndSlash(destPath);
+  if(*destPath && destPath[strlen(destPath)-1] != ':') addEndSlash(destPath);
   
   DWORD noBytesWritten;
   DWORD checkSum     = 0;
@@ -204,12 +207,12 @@ int Manager::getFiles(PluginPanelItem *panelItem,
   
   if(singleFile)
   {
-    wsprintf(name, "%s%s", destPath, panelItem[0].FindData.cFileName);
+    sprintf(name, "%s%s", destPath, panelItem[0].FindData.cFileName);
     *pointToExt(name) = 0;
     if(skipHeader)
-      lstrcat(name, "bin");
+      strcat(name, "bin");
     else
-      lstrcat(name, "scl");
+      strcat(name, "scl");
     int r = createFile(file, name, buttonStatus);
     if(r == 0 || r == -1) return -1;
     if(!skipHeader) checkSum = writeSCLHeader(file, noItems);
@@ -227,15 +230,15 @@ int Manager::getFiles(PluginPanelItem *panelItem,
     // определяем номер файла
     int fNum;
     for(fNum = 0; fNum < noFiles; ++fNum)
-      if(!lstrcmp(panelItem[iNum].FindData.cFileName, pcFiles[fNum].name)) break;
+      if(!strcmp(panelItem[iNum].FindData.cFileName, pcFiles[fNum].name)) break;
 
     // просмотр текстовых файлов без заголовка
     if(noItems == 1 && ((opMode & OPM_VIEW) || (opMode & OPM_EDIT)) && pcFiles[fNum].skipHeader) skipHeader = true;
 
     if(!singleFile)
     {
-      wsprintf(name, "%s%s", destPath, panelItem[iNum].FindData.cFileName);
-      if(skipHeader) lstrcat(name, ".bin");
+      sprintf(name, "%s%s", destPath, panelItem[iNum].FindData.cFileName);
+      if(skipHeader) strcat(name, ".bin");
       int r = createFile(file, name, buttonStatus);
       if(r == -1)
       {
@@ -250,7 +253,7 @@ int Manager::getFiles(PluginPanelItem *panelItem,
       if(!skipHeader)
       {
         HoHdr hdr;
-        CopyMemory(hdr.name, files[fNum].name, 8);
+        memcpy(hdr.name, files[fNum].name, 8);
         
         hdr.type     = files[fNum].type;
         hdr.start    = files[fNum].start;
@@ -277,9 +280,9 @@ int Manager::getFiles(PluginPanelItem *panelItem,
     msgItems[0] = getMsg(MCopyingFile);
     char  shortName[51] = "...";
     msgItems[1] = name;
-    if(lstrlen(name) > 47)
+    if(strlen(name) > 47)
     {
-      lstrcat(shortName, name + lstrlen(name) - 47);
+      strcat(shortName, name + strlen(name) - 47);
       msgItems[1] = shortName;
     }
     if((opMode & OPM_SILENT) == 0)

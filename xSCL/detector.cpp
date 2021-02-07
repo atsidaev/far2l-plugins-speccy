@@ -1,10 +1,13 @@
 #include <windows.h>
-#include "plugin.hpp"
+#include "pluginold.hpp"
+using namespace oldfar;
 
 #include "detector.hpp"
 #include "types.hpp"
 #include "tools.hpp"
 #include "lang.hpp"
+
+#include "../shared/widestring.hpp"
 
 extern PluginStartupInfo startupInfo;
 extern Options           op;
@@ -12,17 +15,17 @@ extern Options           op;
 HANDLE ini;
 char   iniBuf[256];
 DWORD  bufSize;
-DWORD  index;
+DWORD  d_index;
 
 bool fgetch(char& ch)
 {
-  if(index == bufSize)
+  if(d_index == bufSize)
   {
     ReadFile(ini, iniBuf, sizeof(iniBuf), &bufSize, NULL);
     if(bufSize == 0) return false;
-    index = 0;
+    d_index = 0;
   }
-  ch = iniBuf[index++];
+  ch = iniBuf[d_index++];
   return true;
 }
 
@@ -65,7 +68,7 @@ bool parseLine(char* ptr, char* key, char* value)
   ptr = skipWS(++ptr);
   if(!*ptr) return false;
 
-  char* end = ptr + lstrlen(ptr) - 1;
+  char* end = ptr + strlen(ptr) - 1;
   while(end != ptr && (*end == ' ' || *end == '\t')) --end; // skip end ws
   while(ptr != end+1) *value++ = *ptr++;
   *value = 0;
@@ -147,8 +150,8 @@ Detector::Detector(char* path)
   {
     if(op.iniFilePath[0] != 0)
     {
-      lstrcpy(fileName, op.iniFilePath);
-      ini = CreateFile(fileName,
+      strcpy(fileName, op.iniFilePath);
+      ini = CreateFile(_W(fileName).c_str(),
                        GENERIC_READ,
                        FILE_SHARE_READ | FILE_SHARE_WRITE,
                        NULL,
@@ -159,10 +162,10 @@ Detector::Detector(char* path)
       if(ini != INVALID_HANDLE_VALUE) break;
     }
 
-    lstrcpy(fileName, path);
-    lstrcpy(pointToName(fileName), "types.ini");
+    strcpy(fileName, path);
+    strcpy(pointToName(fileName), "types.ini");
 
-    ini = CreateFile(fileName,
+    ini = CreateFile(_W(fileName).c_str(),
                      GENERIC_READ,
                      FILE_SHARE_READ | FILE_SHARE_WRITE,
                      NULL,
@@ -172,12 +175,12 @@ Detector::Detector(char* path)
 
     if(ini != INVALID_HANDLE_VALUE) break;
 
-    lstrcpy(fileName, path);
+    strcpy(fileName, path);
     char *ptr = pointToName(fileName) - 1;
     *ptr = 0;
-    lstrcpy(pointToName(fileName), "types.ini");
+    strcpy(pointToName(fileName), "types.ini");
 
-    ini = CreateFile(fileName,
+    ini = CreateFile(_W(fileName).c_str(),
                      GENERIC_READ,
                      FILE_SHARE_READ | FILE_SHARE_WRITE,
                      NULL,
@@ -196,7 +199,7 @@ Detector::Detector(char* path)
     return;
   }
 
-  index = bufSize = sizeof(iniBuf);
+  d_index = bufSize = sizeof(iniBuf);
   
   char  line [256];
   char  key  [20];
@@ -206,7 +209,7 @@ Detector::Detector(char* path)
   bool errors = false;
 
   FormatInfo form;
-  ZeroMemory(&form, sizeof(FormatInfo));
+  memset(&form, 0, sizeof(FormatInfo));
   form.size   = -1;
   form.start  = -1;
   form.noSecs = -1;
@@ -223,7 +226,7 @@ Detector::Detector(char* path)
     {
       if(checkFormat(form)) formats[noFormats++] = form;
       
-      ZeroMemory(&form, sizeof(FormatInfo));
+      memset(&form, 0, sizeof(FormatInfo));
       form.size   = -1;
       form.start  = -1;
       form.noSecs = -1;
@@ -236,7 +239,7 @@ Detector::Detector(char* path)
       continue;
     }
 
-    if(!lstrcmp(key, "Type"))
+    if(!strcmp(key, "Type"))
     {
       BYTE type;
       if(getByte(type, value))
@@ -246,7 +249,7 @@ Detector::Detector(char* path)
       continue;
     }
 
-    if(!lstrcmp(key, "Size"))
+    if(!strcmp(key, "Size"))
     {
       WORD size;
       if(getWord(size, value))
@@ -256,7 +259,7 @@ Detector::Detector(char* path)
       continue;
     }
 
-    if(!lstrcmp(key, "Start"))
+    if(!strcmp(key, "Start"))
     {
       WORD start;
       if(getWord(start, value))
@@ -266,7 +269,7 @@ Detector::Detector(char* path)
       continue;
     }
 
-    if(!lstrcmp(key, "NoSecs"))
+    if(!strcmp(key, "NoSecs"))
     {
       BYTE noSecs;
       if(getByte(noSecs, value))
@@ -276,7 +279,7 @@ Detector::Detector(char* path)
       continue;
     }
 
-    if(!lstrcmp(key, "NewType"))
+    if(!strcmp(key, "NewType"))
     {
       BYTE newType;
       if(getByte(newType, value))
@@ -286,7 +289,7 @@ Detector::Detector(char* path)
       continue;
     }
 
-    if(!lstrcmp(key, "SpecialChar"))
+    if(!strcmp(key, "SpecialChar"))
     {
       BYTE specialChar;
       if(getByte(specialChar, value))
@@ -296,19 +299,19 @@ Detector::Detector(char* path)
       continue;
     }
 
-    if(!lstrcmp(key, "Description"))
+    if(!strcmp(key, "Description"))
     {
       if(form.description) delete[] form.description;
-      form.description = new char[lstrlen(value)+1];
-      lstrcpy(form.description, value);
+      form.description = new char[strlen(value)+1];
+      strcpy(form.description, value);
     }
 
-    if(!lstrcmp(key, "ShowHeader"))
+    if(!strcmp(key, "ShowHeader"))
     {
-      if(!lstrcmpi(value, "no")) form.skipHeader = true;
+      if(!strcmpi(value, "no")) form.skipHeader = true;
     }
 
-    if(!lstrcmp(key, "Comment"))
+    if(!strcmp(key, "Comment"))
     {
       WORD w;
       ptr = value;
@@ -330,7 +333,7 @@ Detector::Detector(char* path)
       continue;
     }
 
-    if(!lstrcmp(key, "Signature"))
+    if(!strcmp(key, "Signature"))
     {
       char* ptr = value;
 
@@ -438,7 +441,7 @@ BYTE Detector::detect(const FileHdr& hdr, const BYTE* secs, int size, char* comm
       char* ptr = comment;
       if(*ptr)
       {
-        int len = lstrlen(ptr);
+        int len = strlen(ptr);
         char lastChar = ' ';
         
         for(int k = 0; k < len; ++k)

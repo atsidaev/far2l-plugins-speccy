@@ -1,25 +1,25 @@
 #include <windows.h>
-#include "plugin.hpp"
+#include <pluginold.hpp>
+using namespace oldfar;
 
 #include "manager.hpp"
 #include "types.hpp"
 #include "tools.hpp"
 #include "lang.hpp"
+#include "../shared/widestring.hpp"
 
 extern PluginStartupInfo startupInfo;
 extern Options           op;
 
 bool Manager::deleteFilesImpl (BYTE noItems)
 {
-  char tempDirName[300];
-  if(GetTempPath(299, tempDirName) == 0) lstrcpy(tempDirName, ".");
-
-  char tempFileName[300];
-  if(GetTempFileName(tempDirName, "scl", 0, tempFileName) == 0) return false;
-  
+  char tempFileName[300] = "/tmp/xsclXXXXXX";
+  int fd = mkstemp(tempFileName);
+  if(!fd) return false;
+  close(fd);
   if(!openHostFile()) return false;
   
-  HANDLE tempFile = CreateFile(tempFileName,
+  HANDLE tempFile = CreateFile(_W(tempFileName).c_str(),
                                GENERIC_WRITE,
                                FILE_SHARE_READ | FILE_SHARE_WRITE,
                                NULL,
@@ -55,8 +55,8 @@ bool Manager::deleteFilesImpl (BYTE noItems)
   
   CloseHandle(tempFile);
   closeHostFile();
-  DeleteFile(hostFileName);
-  MoveFile(tempFileName, hostFileName);
+  DeleteFile(_W(hostFileName).c_str());
+  MoveFile(_W(tempFileName).c_str(), _W(hostFileName).c_str());
   op.reread = true;
   startupInfo.Control(this,FCTL_UPDATEANOTHERPANEL, (void *)1);
   op.reread = false;
@@ -88,9 +88,9 @@ int Manager::deleteFiles(PluginPanelItem *panelItem, int noItems, int opMode)
     msgItems[4] = getMsg(MCancel);
     char msg[30];
     if(noItems == 1)
-      wsprintf(msg, "%s", panelItem[0].FindData.cFileName);
+      sprintf(msg, "%s", panelItem[0].FindData.cFileName);
     else
-      wsprintf(msg, getMsg(MDelFiles), noItems);
+      sprintf(msg, getMsg(MDelFiles), noItems);
     
     msgItems[2] = msg;
     if(messageBox(0, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 2)!=0)
@@ -104,7 +104,7 @@ int Manager::deleteFiles(PluginPanelItem *panelItem, int noItems, int opMode)
       msgItems[4] = getMsg(MCancel);
 
       char msg[30];
-      wsprintf(msg, getMsg(MDelFiles), noItems);
+      sprintf(msg, getMsg(MDelFiles), noItems);
       msgItems[2] = msg;
       if(messageBox(FMSG_WARNING, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 2)!=0)
         return FALSE;
@@ -116,7 +116,7 @@ int Manager::deleteFiles(PluginPanelItem *panelItem, int noItems, int opMode)
   for(int i = 0; i < noFiles; ++i)
   {
     for(int j = 0; j < noItems; ++j)
-      if(!lstrcmp(pcFiles[i].name, panelItem[j].FindData.cFileName))
+      if(!strcmp(pcFiles[i].name, panelItem[j].FindData.cFileName))
       {
         pcFiles[i].deleted = true;
         ++noFoundFiles;

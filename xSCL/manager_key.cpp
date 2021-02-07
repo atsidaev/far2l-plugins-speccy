@@ -1,5 +1,6 @@
 #include <windows.h>
-#include "plugin.hpp"
+#include <pluginold.hpp>
+using namespace oldfar;
 
 #include "manager.hpp"
 #include "types.hpp"
@@ -55,7 +56,7 @@ int Manager::processKey(int key, unsigned int controlState)
       char *fName = info.PanelItems[info.CurrentItem].FindData.cFileName;
       int fNum = 0;
       for(; fNum < noFiles; ++fNum)
-        if(!lstrcmp(fName, pcFiles[fNum].name)) break;
+        if(!strcmp(fName, pcFiles[fNum].name)) break;
 
       DWORD oldCheckSum = calculateCheckSum((BYTE*)&files[fNum], sizeof(FileHdr));
       
@@ -65,7 +66,7 @@ int Manager::processKey(int key, unsigned int controlState)
       char type[2] = " ";
       type[0] = files[fNum].type ? files[fNum].type : ' ';
       char start[6];
-      wsprintf(start, "%d", files[fNum].start);
+      sprintf(start, "%d", files[fNum].start);
       
       InitDialogItem items[]=
       {

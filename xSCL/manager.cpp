@@ -1,11 +1,13 @@
 #include <windows.h>
-#include "plugin.hpp"
+#include <pluginold.hpp>
+using namespace oldfar;
 
 #include "manager.hpp"
 #include "detector.hpp"
 #include "types.hpp"
 #include "tools.hpp"
 #include "lang.hpp"
+#include "../shared/widestring.hpp"
 
 extern PluginStartupInfo startupInfo;
 extern Detector*         detector;
@@ -13,11 +15,11 @@ extern Options           op;
 
 Manager::Manager(char* fileName)
 {
-  lstrcpy(hostFileName, fileName);
+  strcpy(hostFileName, fileName);
   
   noFiles = 0;
   
-  ZeroMemory(&lastModifed, sizeof(WIN32_FIND_DATA));
+  memset(&lastModifed, 0, sizeof(WIN32_FIND_DATA));
 }
 
 Manager::~Manager()
@@ -35,9 +37,9 @@ void Manager::getOpenPluginInfo(OpenPluginInfo* info)
   
   static char panelTitle[260];
   panelTitle[0] = 0;
-  lstrcat(panelTitle, " SCL:");
-  lstrcat(panelTitle, pointToName(hostFileName));
-  lstrcat(panelTitle, " ");
+  strcat(panelTitle, " SCL:");
+  strcat(panelTitle, pointToName(hostFileName));
+  strcat(panelTitle, " ");
   info->PanelTitle       = panelTitle;
 
   static PanelMode mode[10];
@@ -106,6 +108,7 @@ int Manager::getFindData(PluginPanelItem **pPanelItem, int *pNoItems, int opMode
   if(!readInfo()) return FALSE;
   
   PluginPanelItem *item = new PluginPanelItem[noFiles];
+  memset(item, 0, sizeof(PluginPanelItem) * noFiles);
   *pNoItems   = noFiles;
   *pPanelItem = item;
   
@@ -127,7 +130,7 @@ int Manager::getFindData(PluginPanelItem **pPanelItem, int *pNoItems, int opMode
   for(int fNum = 0; fNum < noFiles; ++fNum)
   {
     item[fNum].FindData.dwFileAttributes = files[fNum].name[0] == 0x01 ? FILE_ATTRIBUTE_HIDDEN : FILE_ATTRIBUTE_NORMAL;
-    lstrcpy(item[fNum].FindData.cFileName, pcFiles[fNum].name);
+    strcpy(item[fNum].FindData.cFileName, pcFiles[fNum].name);
     item[fNum].FindData.nFileSizeLow = files[fNum].size;
     
     item[fNum].CustomColumnNumber = 5;
@@ -135,24 +138,24 @@ int Manager::getFindData(PluginPanelItem **pPanelItem, int *pNoItems, int opMode
     
     item[fNum].CustomColumnData[0] = new char[nameColumnWidth+1];
     
-    FillMemory(name, nameColumnWidth+1, ' ');
+    memset(name, ' ', nameColumnWidth+1);
     
     makeTrDosName(name, files[fNum], nameColumnWidth);
-    lstrcpy(item[fNum].CustomColumnData[0], name);
+    strcpy(item[fNum].CustomColumnData[0], name);
     
     item[fNum].CustomColumnData[1] = new char[6];
-    wsprintf(item[fNum].CustomColumnData[1], "%5d", files[fNum].start);
+    sprintf(item[fNum].CustomColumnData[1], "%5d", files[fNum].start);
     
     item[fNum].CustomColumnData[2] = new char[4];
-    wsprintf(item[fNum].CustomColumnData[2],
+    sprintf(item[fNum].CustomColumnData[2],
              "%3d",
              files[fNum].noSecs);
     
     char* description = detector->description(pcFiles[fNum].type);
     if(description)
     {
-      item[fNum].CustomColumnData[3] = new char[lstrlen(description)+1];
-      lstrcpy(item[fNum].CustomColumnData[3], description);
+      item[fNum].CustomColumnData[3] = new char[strlen(description)+1];
+      strcpy(item[fNum].CustomColumnData[3], description);
     }
     else
     {
@@ -163,8 +166,8 @@ int Manager::getFindData(PluginPanelItem **pPanelItem, int *pNoItems, int opMode
     char* comment = pcFiles[fNum].comment;
     if(comment)
     {
-      item[fNum].CustomColumnData[4] = new char[lstrlen(comment)+1];
-      lstrcpy(item[fNum].CustomColumnData[4], comment);
+      item[fNum].CustomColumnData[4] = new char[strlen(comment)+1];
+      strcpy(item[fNum].CustomColumnData[4], comment);
     }
     else
     {

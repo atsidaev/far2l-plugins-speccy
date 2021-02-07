@@ -1,6 +1,8 @@
 #ifndef xSCL_HPP
 #define xSCL_HPP
-#include "plugin.hpp"
+#include <pluginold.hpp>
+using namespace oldfar;
+
 
 extern "C" {
   void   WINAPI _export SetStartupInfo   (PluginStartupInfo *info);

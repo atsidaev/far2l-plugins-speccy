@@ -1,10 +1,12 @@
 #include <windows.h>
-#include "plugin.hpp"
+#include <pluginold.hpp>
+using namespace oldfar;
 
 #include "manager.hpp"
 #include "types.hpp"
 #include "tools.hpp"
 #include "lang.hpp"
+#include "../shared/widestring.hpp"
 
 extern PluginStartupInfo startupInfo;
 
@@ -17,7 +19,7 @@ int Manager::checkExistingFiles(FileHdr* hdrs,
   bool fileAlreadyExists = false;
   int fNum;
   for(fNum = 0; fNum < no_files; ++fNum)
-    if(compareMemory(hdrs[fNum].name, hdr.name, 9))
+    if(compareMemory((BYTE*)hdrs[fNum].name, (BYTE*)hdr.name, 9))
     {
       fileAlreadyExists = true;
       break;
@@ -40,15 +42,15 @@ int Manager::checkExistingFiles(FileHdr* hdrs,
       msgItems[12] = getMsg(MCancel);
       
       BYTE name[13] = "            ";
-      makeTrDosName(name, hdr, 12);
-      msgItems[2] = name;
+      makeTrDosName((char*)name, hdr, 12);
+      msgItems[2] = (char*)name;
       
       char source[50];
       char dest[50];
-      wsprintf(source, getMsg(MSource),
+      sprintf(source, getMsg(MSource),
                (int)hdr.size,
                hdr.noSecs);
-      wsprintf(dest,   getMsg(MDestination),
+      sprintf(dest,   getMsg(MDestination),
                (int)hdrs[fNum].size,
                hdrs[fNum].noSecs);
       
@@ -89,18 +91,20 @@ int Manager::putFiles(PluginPanelItem *panelItem, int noItems, int move, int opM
     return FALSE;
   }
 
-  char tempDirName[300];
-  if(GetTempPath(299, tempDirName) == 0) lstrcpy(tempDirName, ".");
+  char outFileName [300] = "/tmp/xscloutXXXXXX";
+  char bodyFileName[300] = "/tmp/xsclbodyXXXXXX";
 
-  char outFileName [300];
-  char bodyFileName[300];
+  int fd = mkstemp(outFileName);
+  if (!fd) return 0;
+  close(fd);
   
-  if(GetTempFileName(tempDirName, "out",  0, outFileName)  == 0) return 0;
-  if(GetTempFileName(tempDirName, "body", 0, bodyFileName) == 0) return 0;
+  fd = mkstemp(bodyFileName);
+  if (!fd) return 0;
+  close(fd);
   
   if(!openHostFile()) return 0;
   
-  HANDLE bodyFile = CreateFile(bodyFileName,
+  HANDLE bodyFile = CreateFile(_W(bodyFileName).c_str(),
                                GENERIC_WRITE | GENERIC_READ,
                                FILE_SHARE_READ | FILE_SHARE_WRITE,
                                NULL,
@@ -115,7 +119,7 @@ int Manager::putFiles(PluginPanelItem *panelItem, int noItems, int move, int opM
     return 0;
   }
   
-  HANDLE outFile = CreateFile(outFileName,
+  HANDLE outFile = CreateFile(_W(outFileName).c_str(),
                               GENERIC_WRITE,
                               FILE_SHARE_READ | FILE_SHARE_WRITE,
                               NULL,
@@ -159,7 +163,7 @@ int Manager::putFiles(PluginPanelItem *panelItem, int noItems, int move, int opM
 
     bool isFullFileCopied = true;
     
-    file = CreateFile(panelItem[iNum].FindData.cFileName,
+    file = CreateFile(_W(panelItem[iNum].FindData.cFileName).c_str(),
                       GENERIC_READ,
                       FILE_SHARE_READ | FILE_SHARE_WRITE,
                       NULL,
@@ -170,7 +174,7 @@ int Manager::putFiles(PluginPanelItem *panelItem, int noItems, int move, int opM
     if(file == INVALID_HANDLE_VALUE)
     {
       char msg[300];
-      wsprintf(msg, getMsg(MCanNotOpen), panelItem[iNum].FindData.cFileName);
+      sprintf(msg, getMsg(MCanNotOpen), panelItem[iNum].FindData.cFileName);
       errorMessage(msg);
       exitCode = 0;
       continue;
@@ -188,7 +192,7 @@ int Manager::putFiles(PluginPanelItem *panelItem, int noItems, int move, int opM
       ReadFile(file, &ho_hdr, sizeof(HoHdr), &noBytesRead, 0);
 
       FileHdr hdr;
-      CopyMemory(hdr.name, ho_hdr.name, 8);
+      memcpy(hdr.name, ho_hdr.name, 8);
       hdr.type     = ho_hdr.type;
       hdr.start    = ho_hdr.start;
       hdr.size     = ho_hdr.size;
@@ -274,9 +278,9 @@ int Manager::putFiles(PluginPanelItem *panelItem, int noItems, int move, int opM
       
       // формируем имя
       char name[8]  = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
-      if(no_files > 1) FillMemory(name, 8, '_');
+      if(no_files > 1) memset(name, '_', 8);
       
-      BYTE* ptr = pointToName(panelItem[iNum].FindData.cFileName);
+      BYTE* ptr = (BYTE*)pointToName(panelItem[iNum].FindData.cFileName);
       int pos = 0;
       while(*ptr && *ptr != '.')
       {
@@ -287,7 +291,7 @@ int Manager::putFiles(PluginPanelItem *panelItem, int noItems, int move, int opM
       
       // формируем расширение
       char ext[3]   = {'C', 0, 0};
-      ptr = pointToExt(panelItem[iNum].FindData.cFileName);
+      ptr = (BYTE*)pointToExt(panelItem[iNum].FindData.cFileName);
       pos = 0;
       if(ptr)
       {
@@ -306,12 +310,12 @@ int Manager::putFiles(PluginPanelItem *panelItem, int noItems, int move, int opM
         if(no_files > 1)
         {
           char num[5];
-          wsprintf(num, "_%03d", fNum);
-          CopyMemory(name + 4, num, 4);
+          sprintf(num, "_%03d", fNum);
+          memcpy(name + 4, num, 4);
         }
         
-        CopyMemory(hdr.name, name, 8);
-        CopyMemory(&hdr.type, ext,  3);
+        memcpy(hdr.name, name, 8);
+        memcpy(&hdr.type, ext,  3);
         if(sizeInSec > 255)
         {
           hdr.noSecs = 255;
@@ -356,7 +360,7 @@ int Manager::putFiles(PluginPanelItem *panelItem, int noItems, int move, int opM
     if(isFullFileCopied)
     {
       panelItem[iNum].Flags ^= PPIF_SELECTED;
-      if(move) DeleteFile(panelItem[iNum].FindData.cFileName);
+      if(move) DeleteFile(_W(panelItem[iNum].FindData.cFileName).c_str());
     }
   }
   // если вышли из цикла по break
@@ -393,8 +397,9 @@ int Manager::putFiles(PluginPanelItem *panelItem, int noItems, int move, int opM
   CloseHandle(outFile);
   closeHostFile();
   
-  DeleteFile(hostFileName);
-  MoveFile(outFileName, hostFileName);
+  DeleteFile(_W(hostFileName).c_str());
+  DeleteFile(_W(bodyFileName).c_str());
+  MoveFile(_W(outFileName).c_str(), _W(hostFileName).c_str());
 
   startupInfo.RestoreScreen(screen);
   return exitCode;

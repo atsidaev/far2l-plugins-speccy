@@ -7,6 +7,7 @@
 #include "registry.hpp"
 #include "detector.hpp"
 #include "lang.hpp"
+#include "../shared/widestring.hpp"
 
 PluginStartupInfo startupInfo;
 Options           op;
@@ -18,15 +19,15 @@ void WINAPI _export SetStartupInfo(PluginStartupInfo *info)
   // получили свою копию PluginStartupInfo
   startupInfo = *info;
 
-  reg =  new Registry(startupInfo.RootKey);
-  op.showExt          = reg->getNumber(HKEY_CURRENT_USER, "ShowExt", 1);
-  op.defaultPanelMode = reg->getNumber(HKEY_CURRENT_USER, "DefaultPanelMode", 5);
-  op.defaultFormat    = reg->getNumber(HKEY_CURRENT_USER, "DefaultFormat", 1);
-  op.detectFormat     = reg->getNumber(HKEY_CURRENT_USER, "DetectFormat", 1);
+  reg =  new Registry((char*)startupInfo.RootKey, L"/ZX/xSCL/");
+  op.showExt          = reg->getNumber(HKEY_CURRENT_USER, L"ShowExt", 1);
+  op.defaultPanelMode = reg->getNumber(HKEY_CURRENT_USER, L"DefaultPanelMode", 5);
+  op.defaultFormat    = reg->getNumber(HKEY_CURRENT_USER, L"DefaultFormat", 1);
+  op.detectFormat     = reg->getNumber(HKEY_CURRENT_USER, L"DetectFormat", 1);
   op.reread           = false;
 
   char iniFilePath[300] = "";
-  reg->getString(HKEY_CURRENT_USER, "IniFilePath", op.iniFilePath, iniFilePath, 300);
+  reg->getString(HKEY_CURRENT_USER, L"IniFilePath", op.iniFilePath, iniFilePath, 300);
 
   detector = new Detector(startupInfo.ModuleName);
 }
@@ -47,7 +48,7 @@ HANDLE WINAPI _export OpenFilePlugin(char *name, const unsigned char *data, int 
   if(dataSize < 9+data[8]*sizeof(FileHdr) ||
      !compareMemory((unsigned char*)data, signature, sizeof(signature))) return INVALID_HANDLE_VALUE;
 
-  HANDLE hostFile = CreateFile(name,
+  HANDLE hostFile = CreateFile(_W(name).c_str(),
                                GENERIC_READ,
                                FILE_SHARE_READ | FILE_SHARE_WRITE,
                                NULL,
@@ -81,7 +82,7 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom, int Item)
   if(OpenFrom != OPEN_COMMANDLINE) return INVALID_HANDLE_VALUE;
   char *name = (char*)Item;
 
-  HANDLE hostFile = CreateFile(name,
+  HANDLE hostFile = CreateFile(_W(name).c_str(),
                                GENERIC_READ,
                                FILE_SHARE_READ | FILE_SHARE_WRITE,
                                NULL,
@@ -177,7 +178,7 @@ int WINAPI _export ProcessEvent(HANDLE hPlugin, int event, void *param)
     startupInfo.Control(hPlugin, FCTL_GETPANELINFO, &panel);
 
     op.defaultPanelMode = panel.ViewMode;
-    reg->setNumber(HKEY_CURRENT_USER, "DefaultPanelMode", panel.ViewMode);
+    reg->setNumber(HKEY_CURRENT_USER, L"DefaultPanelMode", panel.ViewMode);
   }
   return FALSE;
 }
@@ -250,12 +251,12 @@ int WINAPI _export Configure(int itemNum)
   if(dlgItems[4].Selected) op.defaultFormat = 1;
   if(dlgItems[5].Selected) op.defaultFormat = 2;
 
-  lstrcpy(op.iniFilePath, dlgItems[9].Data);
+  strcpy(op.iniFilePath, dlgItems[9].Data);
 
-  reg->setNumber(HKEY_CURRENT_USER, "DetectFormat",  op.detectFormat);
-  reg->setNumber(HKEY_CURRENT_USER, "ShowExt",       op.showExt);
-  reg->setNumber(HKEY_CURRENT_USER, "DefaultFormat", op.defaultFormat);
-  reg->setString(HKEY_CURRENT_USER, "IniFilePath",   op.iniFilePath);
+  reg->setNumber(HKEY_CURRENT_USER, L"DetectFormat",  op.detectFormat);
+  reg->setNumber(HKEY_CURRENT_USER, L"ShowExt",       op.showExt);
+  reg->setNumber(HKEY_CURRENT_USER, L"DefaultFormat", op.defaultFormat);
+  reg->setString(HKEY_CURRENT_USER, L"IniFilePath",   op.iniFilePath);
 
   return TRUE;
 }

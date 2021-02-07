@@ -5,6 +5,8 @@ const int sectorSize = 0x100;
 
 enum FileType { FMT_SCL, FMT_HOBETA, FMT_PLAIN };
 
+#pragma pack(1)
+
 struct FileHdr
 {
   char name[8];
@@ -35,6 +37,8 @@ struct HoHdr
   WORD checkSum;
 };
 
+#pragma pack()
+
 struct Options
 {
   bool showExt;
@@ -50,10 +54,10 @@ struct InitDialogItem
   unsigned char Type;
   unsigned char X1,Y1,X2,Y2;
   unsigned char Focus;
-  unsigned int  Selected;
-  unsigned int  Flags;
+  DWORD_PTR Selected;
+  unsigned int Flags;
   unsigned char DefaultButton;
-  char          *Data;
+  const char *Data;
 };
 
 #endif
