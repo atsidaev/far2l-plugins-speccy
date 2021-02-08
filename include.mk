@@ -1,5 +1,5 @@
 FAR_PATH ?= ../../far2l
-CXXFLAGS = -c -fPIC -I../shared -I../../../far2l/WinPort -I../../../far2l/far2l/include -I../../../far2l/far2l/ -DWINPORT_DIRECT -DUNICODE
+CXXFLAGS = -c -fPIC -I../shared -I$(FAR_PATH)/WinPort -I$(FAR_PATH)/far2l/include -I$(FAR_PATH)/far2l/ -DWINPORT_DIRECT -DUNICODE
 
 LD=g++ -g
 LDFLAGS = -shared
