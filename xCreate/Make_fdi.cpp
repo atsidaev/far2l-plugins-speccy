@@ -11,21 +11,21 @@ bool createFDI(Track0 track0, int totalSecs, BYTE *interleave, BYTE writeProtect
   BYTE emptySec[secSize];
   ZeroMemory(emptySec, secSize);
 
-  //заголовок файла
+  //╨╖╨░╨│╨╛╨╗╨╛╨▓╨╛╨║ ╤Д╨░╨╣╨╗╨░
   BYTE FDIHdr[] =
   {
-    'F', 'D', 'I',        // сигнатура
-    0x00,                 // Флаг защиты записи  (0 - write enabled, 1 - write disabled)
-    0x50, 0x00,           // число треков (80)
-    0x02, 0x00,           // число сторон
-    0x6E, 0x4A,           // Смещение текста (короткий комментарий к диску)
-    0x00, 0x4B,           // Смещение данных
-    0x00, 0x00            // Длина дополнительной информации в заголовке
+    'F', 'D', 'I',        // ╤Б╨╕╨│╨╜╨░╤В╤Г╤А╨░
+    0x00,                 // ╨д╨╗╨░╨│ ╨╖╨░╤Й╨╕╤В╤Л ╨╖╨░╨┐╨╕╤Б╨╕  (0 - write enabled, 1 - write disabled)
+    0x50, 0x00,           // ╤З╨╕╤Б╨╗╨╛ ╤В╤А╨╡╨║╨╛╨▓ (80)
+    0x02, 0x00,           // ╤З╨╕╤Б╨╗╨╛ ╤Б╤В╨╛╤А╨╛╨╜
+    0x6E, 0x4A,           // ╨б╨╝╨╡╤Й╨╡╨╜╨╕╨╡ ╤В╨╡╨║╤Б╤В╨░ (╨║╨╛╤А╨╛╤В╨║╨╕╨╣ ╨║╨╛╨╝╨╝╨╡╨╜╤В╨░╤А╨╕╨╣ ╨║ ╨┤╨╕╤Б╨║╤Г)
+    0x00, 0x4B,           // ╨б╨╝╨╡╤Й╨╡╨╜╨╕╨╡ ╨┤╨░╨╜╨╜╤Л╤Е
+    0x00, 0x00            // ╨Ф╨╗╨╕╨╜╨░ ╨┤╨╛╨┐╨╛╨╗╨╜╨╕╤В╨╡╨╗╤М╨╜╨╛╨╣ ╨╕╨╜╤Д╨╛╤А╨╝╨░╤Ж╨╕╨╕ ╨▓ ╨╖╨░╨│╨╛╨╗╨╛╨▓╨║╨╡
   };
   FDIHdr[3] = writeProtect;
   WriteFile(image, FDIHdr, sizeof(FDIHdr), &noBytesWritten, NULL);
 
-  //заголовки секторов
+  //╨╖╨░╨│╨╛╨╗╨╛╨▓╨║╨╕ ╤Б╨╡╨║╤В╨╛╤А╨╛╨▓
   for(i = 0; i < 2*noTrks; ++i)
   {
     FDITrk trk;
@@ -43,7 +43,7 @@ bool createFDI(Track0 track0, int totalSecs, BYTE *interleave, BYTE writeProtect
     }
   }
 
-  //комментарий
+  //╨║╨╛╨╝╨╝╨╡╨╜╤В╨░╤А╨╕╨╣
   if(comment)
   {
     WriteFile(image, comment, lstrlen(comment), &noBytesWritten, NULL);
@@ -52,11 +52,11 @@ bool createFDI(Track0 track0, int totalSecs, BYTE *interleave, BYTE writeProtect
   else
     WriteFile(image, emptySec, 146, &noBytesWritten, NULL);
 
-  //дорожка 0
+  //╨┤╨╛╤А╨╛╨╢╨║╨░ 0
   SetFilePointer(image, 0x4B00, NULL, FILE_BEGIN);
   WriteFile(image, &track0, sizeof(Track0), &noBytesWritten, NULL);
 
-  //файлы
+  //╤Д╨░╨╣╨╗╤Л
   for(i = 0; i < totalSecs; ++i)
   {
     BYTE buf[secSize];
@@ -64,7 +64,7 @@ bool createFDI(Track0 track0, int totalSecs, BYTE *interleave, BYTE writeProtect
     WriteFile(image, buf, secSize, &noBytesWritten, NULL);
   }
 
-  //пустые дорожки
+  //╨┐╤Г╤Б╤В╤Л╨╡ ╨┤╨╛╤А╨╛╨╢╨║╨╕
   for(i = totalSecs; i < 2544; ++i)
     WriteFile(image, emptySec, secSize, &noBytesWritten, NULL);
 

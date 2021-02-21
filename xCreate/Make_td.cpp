@@ -52,7 +52,7 @@ bool createTD(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HAND
   BYTE emptySec[secSize];
   ZeroMemory(emptySec, secSize);
 
-  //ß†£Æ´Æ¢Æ™ ‰†©´†
+  //–∑–∞–≥–æ–ª–æ–≤–æ–∫ —Ñ–∞–π–ª–∞
   TDHdr hdr =
   {
     'T', 'D', // id
@@ -70,7 +70,7 @@ bool createTD(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HAND
   hdr.crc = calculateCRC16((BYTE*)&hdr, sizeof(TDHdr) - 2);
   WriteFile(image, &hdr, sizeof(TDHdr), &noBytesWritten, NULL);
 
-  //ÆØ®·†≠®•
+  //–æ–ø–∏—Å–∞–Ω–∏–µ
   if(comment)
   {
     TDInfo info;
@@ -90,7 +90,7 @@ bool createTD(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HAND
     WriteFile(image, &info, info.textSize+10, &noBytesWritten, NULL);
   }
 
-  //§Æ‡Æ¶™®
+  //–¥–æ—Ä–æ–∂–∫–∏
   int savedSecs = 0;
   BYTE trkHdr[4];
   for(i = 0; i < 2*noTrks; ++i)
