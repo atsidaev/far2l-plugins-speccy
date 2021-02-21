@@ -44,4 +44,6 @@ char* getMsg         (int msgId);
 void  initDialogItems(InitDialogItem *init, FarDialogItem *item, int noItems);
 
 FileType detectFileType(HANDLE file);
+
+void replaceFileContent(char* srcFileName, char* dstFileName);
 #endif

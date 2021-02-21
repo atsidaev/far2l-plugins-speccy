@@ -397,9 +397,9 @@ int Manager::putFiles(PluginPanelItem *panelItem, int noItems, int move, int opM
   CloseHandle(outFile);
   closeHostFile();
   
-  DeleteFile(_W(hostFileName).c_str());
   DeleteFile(_W(bodyFileName).c_str());
-  MoveFile(_W(outFileName).c_str(), _W(hostFileName).c_str());
+  replaceFileContent(outFileName, hostFileName);
+  DeleteFile(_W(outFileName).c_str());
 
   startupInfo.RestoreScreen(screen);
   return exitCode;

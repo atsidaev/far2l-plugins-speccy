@@ -55,8 +55,10 @@ bool Manager::deleteFilesImpl (BYTE noItems)
   
   CloseHandle(tempFile);
   closeHostFile();
-  DeleteFile(_W(hostFileName).c_str());
-  MoveFile(_W(tempFileName).c_str(), _W(hostFileName).c_str());
+
+  replaceFileContent(tempFileName, hostFileName);
+  DeleteFile(_W(tempFileName).c_str());
+
   op.reread = true;
   startupInfo.Control(this,FCTL_UPDATEANOTHERPANEL, (void *)1);
   op.reread = false;

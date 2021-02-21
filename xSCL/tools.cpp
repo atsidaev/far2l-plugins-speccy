@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <fstream>
 #include "pluginold.hpp"
 using namespace oldfar;
 #include "tools.hpp"
@@ -424,4 +425,12 @@ FileType detectFileType(HANDLE file)
     return FMT_PLAIN;
   else
     return FMT_SCL;
+}
+
+void replaceFileContent(char* srcFileName, char* dstFileName)
+{
+    std::ifstream src(srcFileName, std::ios::binary);
+    std::ofstream dst(dstFileName, std::ios::binary);
+
+    dst << src.rdbuf();
 }
