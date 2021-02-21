@@ -338,19 +338,19 @@ bool isSCLFull(int no_files, int no_add_files, HANDLE file)
 char* make8x3name(const char* source, char* dest)
 {
   const char* ptr = source;
-  // �����㥬 ���
+  // копируем имя
   for(int i = 0; i < 8; ++i)
   {
     if(!*ptr || *ptr == '.') break;
     dest[i] = *ptr++;
   }
-  // �᫨ ��� ᫨誮� ������� - �ய�᪠�� ���⮪
+  // если имя слишком длинное - пропускаем остаток
   while(*ptr && *ptr != '.') ++ptr;
 
   if(*ptr == '.')
   {
     ++ptr;
-    // �����㥬 ���७��
+    // копируем расширение
     for(int i = 0; i < 3; ++i)
     {
       if(!*ptr) break;
@@ -392,7 +392,7 @@ FileType detectFileType(HANDLE file)
   
   DWORD noBytesRead;
   
-  // �஢��塞 � �� HoBeta �� ��
+  // проверяем уж не HoBeta ли это
   HoHdr hdr;
   ReadFile(file, &hdr, sizeof(HoHdr), &noBytesRead, 0);
 
@@ -400,7 +400,7 @@ FileType detectFileType(HANDLE file)
   if(hdr.checkSum == calculateCheckSum(hdr) &&
      fileSize >= sectorSize*hdr.noSecs + sizeof(HoHdr)) return FMT_HOBETA;
   
-  // �஢��塞 � �� SCL �� ��
+  // проверяем уж не SCL ли это
   BYTE buf[sizeof(signature)];
   ReadFile(file, buf, sizeof(buf), &noBytesRead, 0);
   BYTE no_files;

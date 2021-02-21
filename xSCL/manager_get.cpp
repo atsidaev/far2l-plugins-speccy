@@ -14,12 +14,12 @@ extern PluginStartupInfo startupInfo;
 
 int Manager::createFile(HANDLE& file, char* name, int& action)
 {
-  // проверяем наличие файла
+  // ╨┐╤А╨╛╨▓╨╡╤А╤П╨╡╨╝ ╨╜╨░╨╗╨╕╤З╨╕╨╡ ╤Д╨░╨╣╨╗╨░
   WIN32_FIND_DATA data;
   HANDLE h = FindFirstFile(_W(name).c_str(), &data);
   if(h != INVALID_HANDLE_VALUE)
   {
-    // файл с таким именем существует
+    // ╤Д╨░╨╣╨╗ ╤Б ╤В╨░╨║╨╕╨╝ ╨╕╨╝╨╡╨╜╨╡╨╝ ╤Б╤Г╤Й╨╡╤Б╤В╨▓╤Г╨╡╤В
     FindClose(h);
     if(action == 2) return 0;
     if(action == 0)
@@ -163,7 +163,7 @@ int Manager::getFiles(PluginPanelItem *panelItem,
   }
   
   bool singleFile = false, skipHeader = false;
-  // если надо показать диалог, то покажем
+  // ╨╡╤Б╨╗╨╕ ╨╜╨░╨┤╨╛ ╨┐╨╛╨║╨░╨╖╨░╤В╤М ╨┤╨╕╨░╨╗╨╛╨│, ╤В╨╛ ╨┐╨╛╨║╨░╨╢╨╡╨╝
   if((opMode & OPM_SILENT) == 0)
   {
     int askCode = startupInfo.Dialog(startupInfo.ModuleNumber,
@@ -178,7 +178,7 @@ int Manager::getFiles(PluginPanelItem *panelItem,
     skipHeader = dialogItems[7].Selected;
   }
   
-  // если пользователь хочет, то создадим каталоги
+  // ╨╡╤Б╨╗╨╕ ╨┐╨╛╨╗╤М╨╖╨╛╨▓╨░╤В╨╡╨╗╤М ╤Е╨╛╤З╨╡╤В, ╤В╨╛ ╤Б╨╛╨╖╨┤╨░╨┤╨╕╨╝ ╨║╨░╤В╨░╨╗╨╛╨│╨╕
   if(GetFileAttributes(_W(destPath).c_str())==0xFFFFFFFF)
     for(char *c=destPath; *c; c++)
     {
@@ -200,7 +200,7 @@ int Manager::getFiles(PluginPanelItem *panelItem,
   DWORD noBytesWritten;
   DWORD checkSum     = 0;
   
-  int buttonStatus = 0; // состояние кнопок overwrite_all/skip_all
+  int buttonStatus = 0; // ╤Б╨╛╤Б╤В╨╛╤П╨╜╨╕╨╡ ╨║╨╜╨╛╨┐╨╛╨║ overwrite_all/skip_all
   
   HANDLE file;
   char   name[300];
@@ -227,12 +227,12 @@ int Manager::getFiles(PluginPanelItem *panelItem,
 
   for(int iNum = 0; iNum < noItems; ++iNum)
   {
-    // определяем номер файла
+    // ╨╛╨┐╤А╨╡╨┤╨╡╨╗╤П╨╡╨╝ ╨╜╨╛╨╝╨╡╤А ╤Д╨░╨╣╨╗╨░
     int fNum;
     for(fNum = 0; fNum < noFiles; ++fNum)
       if(!strcmp(panelItem[iNum].FindData.cFileName, pcFiles[fNum].name)) break;
 
-    // просмотр текстовых файлов без заголовка
+    // ╨┐╤А╨╛╤Б╨╝╨╛╤В╤А ╤В╨╡╨║╤Б╤В╨╛╨▓╤Л╤Е ╤Д╨░╨╣╨╗╨╛╨▓ ╨▒╨╡╨╖ ╨╖╨░╨│╨╛╨╗╨╛╨▓╨║╨░
     if(noItems == 1 && ((opMode & OPM_VIEW) || (opMode & OPM_EDIT)) && pcFiles[fNum].skipHeader) skipHeader = true;
 
     if(!singleFile)
@@ -269,7 +269,7 @@ int Manager::getFiles(PluginPanelItem *panelItem,
     {
       if(!skipHeader)
       {
-        // пишем заголовок
+        // ╨┐╨╕╤И╨╡╨╝ ╨╖╨░╨│╨╛╨╗╨╛╨▓╨╛╨║
         SetFilePointer(file, iNum*sizeof(FileHdr)+8+1, NULL, FILE_BEGIN);
         WriteFile     (file, &files[fNum], sizeof(FileHdr), &noBytesWritten, NULL);
         checkSum += calculateCheckSum((BYTE*)&files[fNum], sizeof(FileHdr));
@@ -288,11 +288,11 @@ int Manager::getFiles(PluginPanelItem *panelItem,
     if((opMode & OPM_SILENT) == 0)
       messageBox(0, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 0);
 
-    // копируем тело
+    // ╨║╨╛╨┐╨╕╤А╤Г╨╡╨╝ ╤В╨╡╨╗╨╛
     checkSum += copyFile(fNum, file, skipHeader);
     if(!singleFile) CloseHandle(file);
     
-    // пометили файл как успешно скопированный
+    // ╨┐╨╛╨╝╨╡╤В╨╕╨╗╨╕ ╤Д╨░╨╣╨╗ ╨║╨░╨║ ╤Г╤Б╨┐╨╡╤И╨╜╨╛ ╤Б╨║╨╛╨┐╨╕╤А╨╛╨▓╨░╨╜╨╜╤Л╨╣
     panelItem[iNum].Flags ^= PPIF_SELECTED;
     if(move) pcFiles[fNum].deleted = true;
     ++noFilesWritten;

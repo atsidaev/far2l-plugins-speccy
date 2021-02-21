@@ -65,9 +65,9 @@ void Manager::getOpenPluginInfo(OpenPluginInfo* info)
   
   // C0 - trdos name
   // C1 - trdos 'start'
-  // C2 - ࠧ��� � ᥪ���
-  // C3 - ���ᠭ�� ⨯�
-  // C4 - �������਩ � 䠩��
+  // C2 - размер в секторах
+  // C3 - описание типа
+  // C4 - комментарий к файлу
   
   mode[3].ColumnTypes="N,C2,N,C2";
   mode[3].ColumnWidths="0,3,0,3";
@@ -114,7 +114,7 @@ int Manager::getFindData(PluginPanelItem **pPanelItem, int *pNoItems, int opMode
   
   if(noFiles == 0) return TRUE;
   
-  // ��⠥� �ਭ� �⮫�� ��� �⮡ࠦ���� trdos'���� �����
+  // считаем ширину столбца для отображения trdos'ного имени
   PanelInfo panel;
   startupInfo.Control(this, FCTL_GETPANELINFO, &panel);
   int nameColumnWidth = 12;

@@ -30,21 +30,21 @@ class Manager
     bool deleteFilesImpl  (BYTE noItems);
     
     // action:                        return:
-    //          0 - ·Ø‡Æ·®‚Ï                     1 - ok/overwrite
+    //          0 - —Å–ø—Ä–æ—Å–∏—Ç—å                     1 - ok/overwrite
     //          1 - overwriteAll                 0 - skip
     //          2 - skipAll                     -1 - cancel
     int createFile        (HANDLE& file, char* name, int& action);
-    // hdrs - ¨†··®¢ ß†£Æ´Æ¢™Æ¢ ·„È•·‚¢„ÓÈ®Â ‰†©´Æ¢
-    // hdr  - ß†£Æ´Æ¢Æ™ ™ÆØ®‡„•¨Æ£Æ ‰†©´†
+    // hdrs - –º–∞—Å—Å–∏–≤ –∑–∞–≥–æ–ª–æ–≤–∫–æ–≤ —Å—É—â–µ—Å—Ç–≤—É—é—â–∏—Ö —Ñ–∞–π–ª–æ–≤
+    // hdr  - –∑–∞–≥–æ–ª–æ–≤–æ–∫ –∫–æ–ø–∏—Ä—É–µ–º–æ–≥–æ —Ñ–∞–π–ª–∞
     
     // action:                        return:
-    //          0 - ·Ø‡Æ·®‚Ï                     1 - write
+    //          0 - —Å–ø—Ä–æ—Å–∏—Ç—å                     1 - write
     //          1 - writeAll                     0 - skip
     //          2 - skipAll                     -1 - cancel
     
     int checkExistingFiles(FileHdr* hdrs, FileHdr hdr, int no_files, int& allActions);
 
-    // ¢Æß¢‡†È†Ó‚ ™Æ≠‚‡Æ´Ï≠„Ó ·„¨¨„
+    // –≤–æ–∑–≤—Ä–∞—â–∞—é—Ç –∫–æ–Ω—Ç—Ä–æ–ª—å–Ω—É—é —Å—É–º–º—É
     DWORD copyFile         (int fileNum, HANDLE file, bool skipGarbage = false);
     DWORD writeSCLHeader   (HANDLE file, BYTE no_files);
     
