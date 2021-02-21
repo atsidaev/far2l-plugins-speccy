@@ -23,7 +23,7 @@ bool Manager::deleteFilesImpl (BYTE noItems)
                                GENERIC_WRITE,
                                FILE_SHARE_READ | FILE_SHARE_WRITE,
                                NULL,
-                               CREATE_ALWAYS	,
+                               CREATE_ALWAYS,
                                FILE_FLAG_SEQUENTIAL_SCAN,
                                NULL);
   if(tempFile == INVALID_HANDLE_VALUE)
@@ -41,7 +41,7 @@ bool Manager::deleteFilesImpl (BYTE noItems)
   {
     if(!pcFiles[i].deleted)
     {
-      // Ø®Ë•¨ ß†£Æ´Æ¢Æ™
+      // –ø–∏—à–µ–º –∑–∞–≥–æ–ª–æ–≤–æ–∫
       SetFilePointer(tempFile, noFilesWritten*sizeof(FileHdr)+8+1, NULL, FILE_BEGIN);
       WriteFile(tempFile, &files[i], sizeof(FileHdr), &noBytesWritten, NULL);
       checkSum += calculateCheckSum((BYTE*)&files[i], sizeof(FileHdr));
@@ -50,7 +50,7 @@ bool Manager::deleteFilesImpl (BYTE noItems)
       ++noFilesWritten;
     }
   }
-  // Ø®Ë•¨ ™Æ≠‚‡Æ´Ï≠„Ó ·„¨¨„
+  // –ø–∏—à–µ–º –∫–æ–Ω—Ç—Ä–æ–ª—å–Ω—É—é —Å—É–º–º—É
   WriteFile(tempFile, &checkSum, sizeof(checkSum), &noBytesWritten, NULL);
   
   CloseHandle(tempFile);
@@ -111,7 +111,7 @@ int Manager::deleteFiles(PluginPanelItem *panelItem, int noItems, int opMode)
     }
   }
   
-  // ®È•¨ ‰†©´Î ™Æ‚Æ‡Î• ≠„¶≠Æ „§†´®‚Ï
+  // –∏—â–µ–º —Ñ–∞–π–ª—ã –∫–æ—Ç–æ—Ä—ã–µ –Ω—É–∂–Ω–æ —É–¥–∞–ª–∏—Ç—å
   int noFoundFiles = 0;
   for(int i = 0; i < noFiles; ++i)
   {

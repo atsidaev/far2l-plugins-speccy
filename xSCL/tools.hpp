@@ -18,11 +18,11 @@ void  addEndSlash   (char *path);
 void  quoteSpaceOnly(char *buf);
 
 bool isValidChar      (BYTE ch);
-bool isValidFolderChar(BYTE ch); // ‡†ß‡•Ë†•¨ ‡„··™®• °„™¢Î
+bool isValidFolderChar(BYTE ch); // —Ä–∞–∑—Ä–µ—à–∞–µ–º —Ä—É—Å—Å–∫–∏–µ –±—É–∫–≤—ã
 
 char *str_r_chr(const char *s, int c);
 // int memcmp (BYTE* p1, BYTE* p2, int maxlen);
-// ·‡†¢≠•≠®• Æ°´†·‚•© Ø†¨Ô‚® °•ß „Á•‚† ‡•£®·‚‡†
+// —Å—Ä–∞–≤–Ω–µ–Ω–∏–µ –æ–±–ª–∞—Å—Ç–µ–π –ø–∞–º—è—Ç–∏ –±–µ–∑ —É—á–µ—Ç–∞ —Ä–µ–≥–∏—Å—Ç—Ä–∞
 int memcmpi(const char* p1, const char* p2, int maxlen);
 int strcmpi(const char* p1, const char* p2);
 

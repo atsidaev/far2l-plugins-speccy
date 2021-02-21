@@ -31,14 +31,14 @@ class Detector
     Detector(char* path);
     ~Detector();
 
-    // �����頥� 0xFF �᫨ ⨯ �� ��।����
+    // возвращает 0xFF если тип не определен
     BYTE  detect       (const FileHdr& hdr, const BYTE* secs, int size, char* comment);
     
     void  specialChar  (BYTE n, char *pos);
     void  getType      (BYTE n, char *pos);
     bool  getSkipHeader(BYTE n);
-    // �����頥� 0, �᫨
-    // ᮮ⢥�����騩 ��ࠬ��� �� �����
+    // возвращает 0, если
+    // соответствующий параметр не задан
     char* description  (BYTE n);
   private:
     BYTE       noFormats;
