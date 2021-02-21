@@ -13,7 +13,7 @@ bool createFDD(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HAN
   BYTE emptySec[secSize];
   ZeroMemory(emptySec, secSize);
 
-  //��������� 䠩��
+  //заголовок файла
   BYTE FDDHdr[] =
   {
     'S', 'P', 'M', ' ',
@@ -22,14 +22,14 @@ bool createFDD(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HAN
     '1', '9', '9','6', ' ',
     'M', 'O', 'A', ' ',
     'v', '0', '.', '1',
-    ' ', ' ', ' ', ' ',   // ᨣ�����
-    0x50,                 // �᫮ �४��
-    0x02,                 // �᫮ ��஭
+    ' ', ' ', ' ', ' ',   // сигнатура
+    0x50,                 // число треков
+    0x02,                 // число сторон
     0x00,0x00,0x00,0x00   // unused
   };
   WriteFile(image, FDDHdr, sizeof(FDDHdr), &noBytesWritten, NULL);
 
-  //ᬥ饭�� � 䠩�� � ������ࠬ ���������� �४��
+  //смещения в файле к структурам заголовков треков
   DWORD trkIdx = sizeof(FDDHdr) + FDDTRACKMAX * 4;
   for(i = 0; i < 2*noTrks; ++i)
   {
@@ -43,7 +43,7 @@ bool createFDD(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HAN
     WriteFile(image, &trk_idx, 4, &noBytesWritten, NULL);
   }
 
-  //��஦��
+  //дорожки
   int savedSecs = 0;
   for(i = 0; i < 2*noTrks; ++i)
   {

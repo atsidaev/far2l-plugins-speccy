@@ -11,11 +11,11 @@ bool createTRD(Track0 track0, int totalSecs, HANDLE image, HANDLE boot)
   BYTE emptySec[secSize];
   ZeroMemory(emptySec, secSize);
 
-  //��஦�� 0
+  //дорожка 0
   SetFilePointer(image, 0, NULL, FILE_BEGIN);
   WriteFile(image, &track0, sizeof(Track0), &noBytesWritten, NULL);
 
-  //䠩��
+  //файлы
   for(i = 0; i < totalSecs; ++i)
   {
     BYTE buf[secSize];
@@ -23,7 +23,7 @@ bool createTRD(Track0 track0, int totalSecs, HANDLE image, HANDLE boot)
     WriteFile(image, buf, secSize, &noBytesWritten, NULL);
   }
 
-  //����� ᥪ��
+  //пустые сектора
   for(i = totalSecs; i < 2544; ++i)
     WriteFile(image, emptySec, secSize, &noBytesWritten, NULL);
 

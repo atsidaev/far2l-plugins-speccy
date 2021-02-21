@@ -12,21 +12,21 @@ bool createSCL(Track0 track0, int totalSecs, HANDLE image, HANDLE boot)
   DWORD noBytesWritten;
   DWORD noBytesRead;
 
-  //идентификатор
+  //╨╕╨┤╨╡╨╜╤В╨╕╤Д╨╕╨║╨░╤В╨╛╤А
   WriteFile(image, signature, sizeof(signature), &noBytesWritten, NULL);
 
-  //количество файлов
+  //╨║╨╛╨╗╨╕╤З╨╡╤Б╤В╨▓╨╛ ╤Д╨░╨╣╨╗╨╛╨▓
   WriteFile(image, &track0.noFiles, 1, &noBytesWritten, NULL);
   checkSum += track0.noFiles;
 
-  //заголовки файлов
+  //╨╖╨░╨│╨╛╨╗╨╛╨▓╨║╨╕ ╤Д╨░╨╣╨╗╨╛╨▓
   for(i = 0; i < track0.noFiles; ++i)
   {
     WriteFile(image, &track0.files[i], sizeof(SCLFileHdr), &noBytesWritten, NULL);
     checkSum += calculateCheckSum((BYTE*)&track0.files[i], sizeof(SCLFileHdr));
   }
 
-  //файлы
+  //╤Д╨░╨╣╨╗╤Л
   for(i = 0; i < totalSecs; ++i)
   {
     BYTE buf[secSize];
@@ -35,7 +35,7 @@ bool createSCL(Track0 track0, int totalSecs, HANDLE image, HANDLE boot)
     checkSum += calculateCheckSum(buf, secSize);
   }
 
-  //контрольная сумма
+  //╨║╨╛╨╜╤В╤А╨╛╨╗╤М╨╜╨░╤П ╤Б╤Г╨╝╨╝╨░
   WriteFile(image, &checkSum, 4, &noBytesWritten, NULL);
 
   return true;
