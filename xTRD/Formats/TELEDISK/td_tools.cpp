@@ -20,11 +20,11 @@ WORD calculateCRC16(BYTE* buf, WORD size)
   return ((crc&0xff)<<8) | (crc>>8);
 }
 
-// ���室 � ᫥���饬� ⮬�
+// переход к следующему тому
 bool nextVolume(void)
 {
   CloseHandle(td);
-  // ���塞 ���७��
+  // меняем расширение
   tdFileName[strlen(tdFileName)-1]++;
   td = CreateFile(_W(tdFileName).c_str(),
                   GENERIC_READ,

@@ -77,11 +77,11 @@ void Manager::getOpenPluginInfo(OpenPluginInfo* info)
   
   // C0 - trdos name
   // C1 - trdos 'start'
-  // C2 - размер в секторах
-  // С3 - дорожка
-  // C4 - сектор
-  // C5 - описание типа
-  // C6 - комментарий к файлу
+  // C2 - ╤А╨░╨╖╨╝╨╡╤А ╨▓ ╤Б╨╡╨║╤В╨╛╤А╨░╤Е
+  // ╨б3 - ╨┤╨╛╤А╨╛╨╢╨║╨░
+  // C4 - ╤Б╨╡╨║╤В╨╛╤А
+  // C5 - ╨╛╨┐╨╕╤Б╨░╨╜╨╕╨╡ ╤В╨╕╨┐╨░
+  // C6 - ╨║╨╛╨╝╨╝╨╡╨╜╤В╨░╤А╨╕╨╣ ╨║ ╤Д╨░╨╣╨╗╤Г
   
   mode[3].ColumnTypes="N,C2,N,C2";
   mode[3].ColumnWidths="0,3,0,3";
@@ -206,7 +206,7 @@ void Manager::getOpenPluginInfo(OpenPluginInfo* info)
 int Manager::getFindData(PluginPanelItem **pPanelItem, int *pNoItems, int opMode)
 {
   if(!readInfo()) return FALSE;
-  // считаем число файлов и каталогов в текущем каталоге
+  // ╤Б╤З╨╕╤В╨░╨╡╨╝ ╤З╨╕╤Б╨╗╨╛ ╤Д╨░╨╣╨╗╨╛╨▓ ╨╕ ╨║╨░╤В╨░╨╗╨╛╨│╨╛╨▓ ╨▓ ╤В╨╡╨║╤Г╤Й╨╡╨╝ ╨║╨░╤В╨░╨╗╨╛╨│╨╡
   int noItems;
   int noFiles   = 0;
   int noFolders = 0;
@@ -238,16 +238,16 @@ int Manager::getFindData(PluginPanelItem **pPanelItem, int *pNoItems, int opMode
 
   if(noItems == 0) return TRUE;
 
-  // считаем ширину столбца для отображения trdos'ного имени
+  // ╤Б╤З╨╕╤В╨░╨╡╨╝ ╤И╨╕╤А╨╕╨╜╤Г ╤Б╤В╨╛╨╗╨▒╤Ж╨░ ╨┤╨╗╤П ╨╛╤В╨╛╨▒╤А╨░╨╢╨╡╨╜╨╕╤П trdos'╨╜╨╛╨│╨╛ ╨╕╨╝╨╡╨╜╨╕
   int nameColumnWidth = 12;
   if((opMode & OPM_FIND) == 0)
   {
-    // откуда растут ноги не понятно, но при поиске файлов
-    // внутренности if'а иногда роняют плагин
+    // ╨╛╤В╨║╤Г╨┤╨░ ╤А╨░╤Б╤В╤Г╤В ╨╜╨╛╨│╨╕ ╨╜╨╡ ╨┐╨╛╨╜╤П╤В╨╜╨╛, ╨╜╨╛ ╨┐╤А╨╕ ╨┐╨╛╨╕╤Б╨║╨╡ ╤Д╨░╨╣╨╗╨╛╨▓
+    // ╨▓╨╜╤Г╤В╤А╨╡╨╜╨╜╨╛╤Б╤В╨╕ if'╨░ ╨╕╨╜╨╛╨│╨┤╨░ ╤А╨╛╨╜╤П╤О╤В ╨┐╨╗╨░╨│╨╕╨╜
     PanelInfo panel;
     startupInfo.Control(this, FCTL_GETPANELINFO, &panel);
     if(panel.ViewMode == 4)
-      // 24 - ширина остальных колонок,  2 - рамка панели
+      // 24 - ╤И╨╕╤А╨╕╨╜╨░ ╨╛╤Б╤В╨░╨╗╤М╨╜╤Л╤Е ╨║╨╛╨╗╨╛╨╜╨╛╨║,  2 - ╤А╨░╨╝╨║╨░ ╨┐╨░╨╜╨╡╨╗╨╕
       nameColumnWidth = panel.PanelRect.right - panel.PanelRect.left - 2 - 24;
     if(nameColumnWidth < 12) nameColumnWidth = 12;
   }

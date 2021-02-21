@@ -23,7 +23,7 @@ namespace
   
   HANDLE file;
   
-  // �� �� �㦭� ��� ����� SCL
+  // все что нужно для записи SCL
   BYTE   noFilesWritten;
   
   BYTE*  hdrs;
@@ -33,12 +33,12 @@ namespace
 
 ExitCode createFile(char* name)
 {
-  // �஢��塞 ����稥 䠩��
+  // проверяем наличие файла
   WIN32_FIND_DATA data;
   HANDLE h = FindFirstFile(_W(name).c_str(), &data);
   if(h != INVALID_HANDLE_VALUE)
   {
-    // 䠩� � ⠪�� ������ �������
+    // файл с таким именем существует
     FindClose(h);
     if(userAction == SKIP_ALL) return SKIP;
     if(userAction == ASK_USER)
@@ -156,7 +156,7 @@ ExitCode Manager::getFile(int fNum, bool isMove, char* to)
         ptr        += sectorSize;
         bodiesSize += sectorSize;
       }
-      // ��ࠡ��뢠�� ��᫥���� ᥪ�� ���� ��ࠧ��
+      // обрабатываем последний сектор хитрым образом
       read(trk, sec, sector);
       memcpy(ptr, sector, lastPartSize);
       bodiesSize += lastPartSize;
@@ -186,7 +186,7 @@ ExitCode Manager::getFile(int fNum, bool isMove, char* to)
 
     if(files[fNum].noSecs)
     {
-      // �����㥬 ⥫� 䠩��
+      // копируем тело файла
       BYTE sector[sectorSize];
 
       int trk = files[fNum].trk, sec = files[fNum].sec;
@@ -196,14 +196,14 @@ ExitCode Manager::getFile(int fNum, bool isMove, char* to)
         if(++sec == 16) { trk++; sec = 0; }
         WriteFile(file, sector, sectorSize, &noBytesWritten, NULL);
       }
-      // ��ࠡ��뢠�� ��᫥���� ᥪ�� ���� ��ࠧ��
+      // обрабатываем последний сектор хитрым образом
       read(trk, sec, sector);
       WriteFile(file, sector, lastPartSize, &noBytesWritten, NULL);
     }
     CloseHandle(file);
   }
   
-  // "㤠�塞" (�᫨ ����) �ᯥ譮 ᪮��஢���� 䠩�
+  // "удаляем" (если надо) успешно скопированный файл
   if(isMove && exitCode == OK)
   {
     if(files[fNum].name[0] != 0x01) ++noDelFiles;
@@ -224,7 +224,7 @@ ExitCode Manager::getFolder(int fNum, bool isMove, char* to)
     addEndSlash(dest);
     CreateDirectory(_W(dest).c_str(), NULL);
   }
-  // �����㥬 �������� ��⠫���
+  // копируем вложенные каталоги
   for(int i = 0; i < noFolders; ++i)
     if(folderMap[i] == fNum)
     {
@@ -234,7 +234,7 @@ ExitCode Manager::getFolder(int fNum, bool isMove, char* to)
       if(code == SKIP)   exitCode = SKIP;
     }
 
-  // �����㥬 �������� 䠩��
+  // копируем вложенные файлы
   for(int i = 0; i < noFiles; ++i)
     if(fileMap[i] == fNum)
     {
@@ -243,7 +243,7 @@ ExitCode Manager::getFolder(int fNum, bool isMove, char* to)
       if(code == SKIP)   exitCode = SKIP;
     }
 
-  // "㤠�塞" (�᫨ ����) �ᯥ譮 ᪮��஢���� ��⮫��
+  // "удаляем" (если надо) успешно скопированный католог
   if(isMove && exitCode == OK)
   {
     if(folders[fNum-1][0] != 0x01) ++noDelFolders;
@@ -328,7 +328,7 @@ int Manager::getFiles(PluginPanelItem *panelItem,
   skipPathnames = false;
   keepSilence   = opMode & OPM_SILENT;
 
-  // �᫨ ���� �������� ������, � �������
+  // если надо показать диалог, то покажем
   if(!keepSilence)
   {
     int askCode = startupInfo.Dialog(startupInfo.ModuleNumber,
@@ -344,7 +344,7 @@ int Manager::getFiles(PluginPanelItem *panelItem,
     skipPathnames =  dialogItems[8].Selected;
   }
   
-  // �᫨ ���짮��⥫� ���, � ᮧ����� ��⠫���
+  // если пользователь хочет, то создадим каталоги
   if(GetFileAttributes(_W(destPath).c_str())==0xFFFFFFFF)
     for(char *c=destPath; *c; c++)
     {
@@ -415,7 +415,7 @@ int Manager::getFiles(PluginPanelItem *panelItem,
       for(fNum = 0; fNum < noFiles; ++fNum)
         if(!strcmp(panelItem[iNum].FindData.cFileName, pcFiles[fNum].name)) break;
 
-      // ��ᬮ�� ⥪�⮢�� 䠩��� ��� ���������
+      // просмотр текстовых файлов без заголовка
       if(noItems == 1 && ((opMode & OPM_VIEW) || (opMode & OPM_EDIT)) && pcFiles[fNum].skipHeader) skipHeaders = true;
       exitCode = getFile(fNum, isMove, destPath);
     }
@@ -430,7 +430,7 @@ int Manager::getFiles(PluginPanelItem *panelItem,
       returnCode = -1;
       break;
     }
-    // ����⨫� 䠩�/��⮫�� ��� �ᯥ譮 ᪮��஢����
+    // пометили файл/католог как успешно скопированный
     panelItem[iNum].Flags ^= PPIF_SELECTED;
   }
   startupInfo.RestoreScreen(screen);

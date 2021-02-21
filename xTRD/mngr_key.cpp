@@ -223,7 +223,7 @@ OkType:
         switch(isDeleted - isDeletedAfter)
         {
           case 1:
-                    // ¢Æ··‚†≠Æ¢®´® ‰†©´
+                    // –≤–æ—Å—Å—Ç–∞–Ω–æ–≤–∏–ª–∏ —Ñ–∞–π–ª
                     noDelFolders--;
                     break;
           case -1:
@@ -284,7 +284,7 @@ OkType:
         switch(isDeleted - isDeletedAfter)
         {
           case 1:
-                    // ¢Æ··‚†≠Æ¢®´® ‰†©´
+                    // –≤–æ—Å—Å—Ç–∞–Ω–æ–≤–∏–ª–∏ —Ñ–∞–π–ª
                     noDelFiles--;
                     diskInfo.noDelFiles = noDelFiles;
                     break;
@@ -362,12 +362,12 @@ bool Manager::checkEntry(char num, bool del, bool *checked)
   int i;
 
   for(i = 0; i < noFolders; i++)
-    if(folderMap[i]==num)//≠†Ë´® ØÆ§™†‚†´Æ£ ¢ ‚•™„È•¨ ™†‚†´Æ£•
+    if(folderMap[i]==num)//–Ω–∞—à–ª–∏ –ø–æ–¥–∫–∞—Ç–∞–ª–æ–≥ –≤ —Ç–µ–∫—É—â–µ–º –∫–∞—Ç–∞–ª–æ–≥–µ
     {
        bool isDel = folders[i][0] == 0x01;
-       if(del && !isDel) return true;//¢ „§†´Ò≠Æ¨ ™†‚†´Æ£• ≠•„§†´Ò≠≠Î© ØÆ§™†‚†´Æ£
+       if(del && !isDel) return true;//–≤ —É–¥–∞–ª—ë–Ω–æ–º –∫–∞—Ç–∞–ª–æ–≥–µ –Ω–µ—É–¥–∞–ª—ë–Ω–Ω—ã–π –ø–æ–¥–∫–∞—Ç–∞–ª–æ–≥
        checked[i] = true;
-       if(checkEntry(i + 1, isDel, checked)) return true;//ÆË®°™† ¢ ØÆ§™†‚†´Æ£•
+       if(checkEntry(i + 1, isDel, checked)) return true;//–æ—à–∏–±–∫–∞ –≤ –ø–æ–¥–∫–∞—Ç–∞–ª–æ–≥–µ
     }
 
   return false;
@@ -378,25 +378,25 @@ bool Manager::checkDS(void)
   bool checked[127];
   int i;
 
-  if(noFolders==0) return false; //≠•Á•£Æ Ø‡Æ¢•‡Ô‚Ï
+  if(noFolders==0) return false; //–Ω–µ—á–µ–≥–æ –ø—Ä–æ–≤–µ—Ä—è—Ç—å
 
   for(i=0; i < noFiles; i++)
-    if(fileMap[i] > noFolders) return true;//‰†©´ ¢ ≠•·„È•·‚¢„ÓÈ•¨ ™†‚†´Æ£•
+    if(fileMap[i] > noFolders) return true;//—Ñ–∞–π–ª –≤ –Ω–µ—Å—É—â–µ—Å—Ç–≤—É—é—â–µ–º –∫–∞—Ç–∞–ª–æ–≥–µ
 
 //  for(i = 0; i < noFolders; i++)
-//    if(folderMap[i] > noFolders) return true;//™†‚†´Æ£ ¢ ≠•·„È•·‚¢„ÓÈ•¨ ™†‚†´Æ£•
+//    if(folderMap[i] > noFolders) return true;//–∫–∞—Ç–∞–ª–æ–≥ –≤ –Ω–µ—Å—É—â–µ—Å—Ç–≤—É—é—â–µ–º –∫–∞—Ç–∞–ª–æ–≥–µ
 
   for(i = 0; i < noFiles; i++)
     if((files[i].name[0] != 0x01) &&
-       (folders[fileMap[i] - 1][0] == 0x01)) return true;//‰†©´ ¢ „§†´Ò≠≠Æ¨ ™†‚†´Æ£•
+       (folders[fileMap[i] - 1][0] == 0x01)) return true;//—Ñ–∞–π–ª –≤ —É–¥–∞–ª—ë–Ω–Ω–æ–º –∫–∞—Ç–∞–ª–æ–≥–µ
 
   for(i = 0; i < 127; i++)
-    checked[i] = false;//≠•‚ Ø‡Æ¢•‡•≠≠ÎÂ ™†‚†´Æ£Æ¢
+    checked[i] = false;//–Ω–µ—Ç –ø—Ä–æ–≤–µ—Ä–µ–Ω–Ω—ã—Ö –∫–∞—Ç–∞–ª–æ–≥–æ–≤
 
-  if(checkEntry(0, false, checked)) return true;//≠†©§•≠† ÆË®°™†
+  if(checkEntry(0, false, checked)) return true;//–Ω–∞–π–¥–µ–Ω–∞ –æ—à–∏–±–∫–∞
 
   for(i = 0; i < noFolders; i++)
-    if(!checked[i]) return true;//™†‚†´Æ£ ≠®™Æ¨„ ≠• Ø‡®≠†§´•¶®‚
+    if(!checked[i]) return true;//–∫–∞—Ç–∞–ª–æ–≥ –Ω–∏–∫–æ–º—É –Ω–µ –ø—Ä–∏–Ω–∞–¥–ª–µ–∂–∏—Ç
 
   return false;
 }

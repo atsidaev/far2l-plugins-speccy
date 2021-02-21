@@ -30,16 +30,16 @@ FileType detectFileType(HANDLE file)
   ReadFile(file, buf, sizeof(HoHdr), &noBytesRead, 0);
   SetFilePointer(file, 0, NULL, FILE_BEGIN);
 
-  // �஢��塞 � �� HoBeta �� ��
+  // проверяем уж не HoBeta ли это
   HoHdr* hdr = (HoHdr*)buf;
   if(hdr->checkSum == calculateCheckSum(*hdr) &&
      fileSize >= sectorSize*hdr->noSecs + sizeof(HoHdr)) return FMT_HOBETA;
   
-  // �஢��塞 � �� SCL �� ��
+  // проверяем уж не SCL ли это
 
-  // �஢�ઠ ����� 䠩�� ����ᠭ� ⠪�� ��ࠧ��,
-  // �⮡� ����� �����४�� scl-䠩�� ᮧ�������
-  // ���묨 ����ﬨ SN
+  // проверка длины файла написана таким образом,
+  // чтобы учесть некорректные scl-файлы создаваемые
+  // старыми версиями SN
   
   char signature[] = {'S', 'I', 'N', 'C', 'L', 'A', 'I', 'R' };
   BYTE no_files = buf[sizeof(signature)];
@@ -150,7 +150,7 @@ ExitCode Manager::writeFile(const SCLHdr& h, HANDLE file, BYTE folderNum)
                   userAction = SKIP_ALL;
         case 2:
                   {
-                    // ����室��� ��� ���४⭮� ��ࠡ�⪨ SCL � PLAIN 䠩���
+                    // необходимо для корректной обработки SCL и PLAIN файлов
                     SetFilePointer(file, hdr.noSecs*sectorSize, NULL, FILE_CURRENT);
                     return SKIP;
                   }
@@ -159,7 +159,7 @@ ExitCode Manager::writeFile(const SCLHdr& h, HANDLE file, BYTE folderNum)
       }
     }
   }
-  // �����㥬 ⥫� 䠩��
+  // копируем тело файла
   int trk = diskInfo.firstFreeTrk;
   int sec = diskInfo.firstFreeSec;
 
@@ -287,7 +287,7 @@ ExitCode Manager::putFile(char* fileName, BYTE folderNum, bool move)
       }
       else
       {
-        // ��᫥���� ��᮪
+        // последний кусок
         hdr.noSecs = sizeInSec;
         hdr.size   = fileSize;
       }
@@ -327,7 +327,7 @@ bool Manager::makeFolder(char* folderName, BYTE folderNum)
   
   make8x3name(folderName, folders[noFolders]);
   folderMap[noFolders]    = folderNum;
-  // �� ���� ���� �� ��ଠ�쭮 ��ନ஢��� ���
+  // по делу надо бы нормально сформировать имя
   pcFolders[noFolders][0] = 0; 
   if(folders[noFolders][0] == 0x01) ++noDelFolders;
   ++noFolders;
@@ -345,7 +345,7 @@ ExitCode Manager::putFolder(char* folderName, BYTE folderNum, bool move)
   }
   if(fNum == noFolders)
   {
-    // ��⠫��� � ⠪�� ������ �� �������
+    // каталога с таким именем не существует
     if(!makeFolder(name, folderNum)) return CANCEL;
   }
 
@@ -428,7 +428,7 @@ int Manager::putFiles(PluginPanelItem *panelItem, int noItems, int move, int opM
       returnCode = -1;
       break;
     }
-    // ����⨫� 䠩�/��⮫�� ��� �ᯥ譮 ᪮��஢����
+    // пометили файл/католог как успешно скопированный
     panelItem[iNum].Flags ^= PPIF_SELECTED;
   }
   startupInfo.RestoreScreen(screen);
