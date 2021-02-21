@@ -1,6 +1,8 @@
 #include <windows.h>
+#include <fstream>
 #include "filer.hpp"
 #include "udi.hpp"
+#include "../../../shared/widestring.hpp" 
 
 WORD wdcrc(unsigned char *ptr, WORD size, BYTE dataId)
 {
@@ -22,7 +24,7 @@ WORD wdcrc(unsigned char *ptr, WORD size, BYTE dataId)
 
 FilerUDI::FilerUDI(const char* fileName)
 {
-  lstrcpy(fName, fileName);
+  strcpy(fName, fileName);
   open();
 
   DWORD noBytesRead;
@@ -31,7 +33,7 @@ FilerUDI::FilerUDI(const char* fileName)
   
   maxSec = 16*(hUDI.noCyls+1)*(hUDI.noHeads+1);
   secs = new DWORD[maxSec];
-  ZeroMemory(secs, maxSec);
+  memset(secs, 0, maxSec);
   
   DWORD offset = hUDI.extraInfoSize+sizeof(UDIHdr);
   SetFilePointer(hostFile, sizeof(UDIHdr)+hUDI.extraInfoSize, NULL, FILE_BEGIN);
@@ -94,9 +96,9 @@ FilerUDI::~FilerUDI()
 bool FilerUDI::open(void)
 {
   DWORD mode = GENERIC_READ | GENERIC_WRITE;
-  DWORD attr = GetFileAttributes(fName);
+  DWORD attr = GetFileAttributes(_W(fName).c_str());
   if(attr & FILE_ATTRIBUTE_READONLY) mode = GENERIC_READ;
-  hostFile = CreateFile(fName,
+  hostFile = CreateFile(_W(fName).c_str(),
                         mode,
                         FILE_SHARE_READ | FILE_SHARE_WRITE,
                         NULL,
@@ -109,39 +111,40 @@ bool FilerUDI::open(void)
 
 bool FilerUDI::close(void)
 {
+  DWORD fileSize = GetFileSize(hostFile, NULL) - 4;
+  if (!CloseHandle(hostFile))
+    return false;
+
   if(isChanged)
   {
     isChanged = false;
-    DWORD fileSize = GetFileSize(hostFile, NULL) - 4;
 
-    HANDLE mh = CreateFileMapping(hostFile, 0, PAGE_READWRITE, 0, 0, NULL);
-    if(mh == NULL) return CloseHandle(hostFile);
+    std::fstream file(fName, std::ios_base::out | std::ios_base::in | std::ios_base::binary);
+    if (!file.good())
+      return false;
 
-    void *buf = MapViewOfFile(mh, FILE_MAP_ALL_ACCESS, 0, 0, 0);
-
-    long CRC = 0xFFFFFFFF;
+    int32_t CRC = 0xFFFFFFFF;
+    unsigned char value;
     for(DWORD i = 0; i < fileSize; i++)
     {
       DWORD temp;
-      CRC ^= -1 ^ *(((unsigned char*)buf)+i);
+      file.read(reinterpret_cast<char*>(&value), 1);
+      CRC ^= -1 ^ value;
       for(BYTE k = 8; k--;)
         { temp = -(CRC & 1); CRC >>= 1; CRC ^= 0xEDB88320 & temp; }
       CRC ^= -1;
     }
-
-    BYTE *CRCptr = (BYTE*)buf + fileSize;
-    *(DWORD*)CRCptr = CRC;
-
-    UnmapViewOfFile(buf);
-    CloseHandle(mh);
+    
+    file.write(reinterpret_cast<char*>(&CRC), sizeof(CRC));
+    file.close();
   }
 
-  return CloseHandle(hostFile);
+  return true;
 }
 
 bool FilerUDI::read(BYTE trk, BYTE sec, BYTE* buf)
 {
-  ZeroMemory(buf, sectorSize);
+  memset(buf, 0, sectorSize);
   if(!secs[16*trk+sec] || 16*trk+sec >= maxSec) return false;
   SetFilePointer(hostFile, secs[16*trk+sec], NULL, FILE_BEGIN);
   DWORD noBytesRead;
@@ -174,17 +177,17 @@ bool FilerUDI::write(BYTE trk, BYTE sec, BYTE* buf)
 
 bool FilerUDI::isProtected(void)
 {
-  DWORD attr = GetFileAttributes(fName);
+  DWORD attr = GetFileAttributes(_W(fName).c_str());
   return (attr & FILE_ATTRIBUTE_READONLY);
 }
 
 bool FilerUDI::protect(bool on)
 {
-  DWORD attr = GetFileAttributes(fName);
+  DWORD attr = GetFileAttributes(_W(fName).c_str());
   if(on)
     attr |= FILE_ATTRIBUTE_READONLY;
   else
     attr &= ~FILE_ATTRIBUTE_READONLY;
 
-  return (SetFileAttributes(fName, attr));
+  return (SetFileAttributes(_W(fName).c_str(), attr));
 }

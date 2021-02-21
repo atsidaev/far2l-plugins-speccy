@@ -1,9 +1,9 @@
 #include "../fmt.hpp"
 #include "filer.hpp"
 #include "udi.hpp"
-#include "../../widestring.hpp"
+#include "../../../shared/widestring.hpp" 
 
-bool WINAPI _export isImage(const char* fileName, const BYTE* data, int size)
+bool WINAPI _export udi_isImage(const char* fileName, const BYTE* data, int size)
 {
   if(data[0] != 'U' || data[1] != 'D' || data[2] != 'I' || data[3] != '!' ||
      data[8] != 0) return false;
@@ -81,56 +81,61 @@ bool WINAPI _export isImage(const char* fileName, const BYTE* data, int size)
   return false;
 }
 
-HANDLE WINAPI _export init(const char* fileName)
+HANDLE WINAPI _export udi_init(const char* fileName)
 {
   return (HANDLE)(new FilerUDI(fileName));
 }
 
-void WINAPI _export cleanup(HANDLE h)
+void WINAPI _export udi_cleanup(HANDLE h)
 {
   delete (FilerUDI*)h;
 }
 
-bool WINAPI _export reload (HANDLE h) { return true; }
+bool WINAPI _export udi_reload (HANDLE h) { return true; }
 
-bool WINAPI _export open(HANDLE h)
+bool WINAPI _export udi_open(HANDLE h)
 {
   FilerUDI* f = (FilerUDI*)h;
   return f->open();
 }
 
-bool WINAPI _export close(HANDLE h)
+bool WINAPI _export udi_close(HANDLE h)
 {
   FilerUDI* f = (FilerUDI*)h;
   return f->close();
 }
 
-bool WINAPI _export read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
+bool WINAPI _export udi_read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
   FilerUDI* f = (FilerUDI*)h;
   return f->read(trk, sec, buf);
 }
 
-bool WINAPI _export write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
+bool WINAPI _export udi_write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
   FilerUDI* f = (FilerUDI*)h;
   return f->write(trk, sec, buf);
 }
 
-char* WINAPI _export getFormatName (void)
+char* WINAPI _export udi_getFormatName (void)
 {
   static char* name = "UDI";
   return name;
 }
 
-bool WINAPI _export isProtected(HANDLE h)
+bool WINAPI _export udi_isProtected(HANDLE h)
 {
   FilerUDI* f = (FilerUDI*)h;
   return f->isProtected();
 }
 
-bool WINAPI _export protect(HANDLE h, bool on)
+bool WINAPI _export udi_protect(HANDLE h, bool on)
 {
   FilerUDI* f = (FilerUDI*)h;
   return f->protect(on);
 }
+
+BYTE readCByte (BYTE *ctr, WORD byte)
+{
+  return ( ctr[byte>>3] & (1<<(byte%8)) );
+};

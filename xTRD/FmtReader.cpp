@@ -11,6 +11,7 @@ using namespace oldfar;
 #include "Formats/FDD/fddfmt.hpp"
 #include "Formats/FDI/fdifmt.hpp"
 #include "Formats/TELEDISK/tdfmt.hpp"
+#include "Formats/UDI/udifmt.hpp"
 
 extern PluginStartupInfo startupInfo;
 
@@ -74,6 +75,21 @@ FmtReader::FmtReader()
   plugins[noPlugins].getFormatName = td_getFormatName;
   plugins[noPlugins].isProtected   = td_isProtected;
   plugins[noPlugins].protect       = td_protect;
+  noPlugins++;
+  
+  plugins[noPlugins].handle  = (HMODULE)noPlugins;
+  plugins[noPlugins].isImage = udi_isImage;
+  plugins[noPlugins].init    = udi_init;
+  plugins[noPlugins].cleanup = udi_cleanup;
+  plugins[noPlugins].reload  = udi_reload;
+  plugins[noPlugins].open    = udi_open;
+  plugins[noPlugins].close   = udi_close;
+  plugins[noPlugins].read    = udi_read;
+  plugins[noPlugins].write   = udi_write;
+
+  plugins[noPlugins].getFormatName = udi_getFormatName;
+  plugins[noPlugins].isProtected   = udi_isProtected;
+  plugins[noPlugins].protect       = udi_protect;
   noPlugins++;
 }
 
