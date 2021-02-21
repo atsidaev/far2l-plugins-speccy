@@ -50,7 +50,7 @@ bool createTD(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HAND
   DWORD noBytesRead;
 
   BYTE emptySec[secSize];
-  ZeroMemory(emptySec, secSize);
+  memset(emptySec, 0, secSize);
 
   //заголовок файла
   TDHdr hdr =
@@ -82,9 +82,9 @@ bool createTD(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HAND
     info.hour  = systemTime.wHour;
     info.min   = systemTime.wMinute;
     info.sec   = systemTime.wSecond;
-    info.textSize = lstrlen(comment) + 8;
-    ZeroMemory(info.text, sizeof(info.text));
-    CopyMemory(info.text, comment, lstrlen(comment));
+    info.textSize = strlen(comment) + 8;
+    memset(info.text, 0, sizeof(info.text));
+    memcpy(info.text, comment, strlen(comment));
     info.crc   = calculateCRC16((BYTE*)&info.textSize, info.textSize + 8);
 
     WriteFile(image, &info, info.textSize+10, &noBytesWritten, NULL);
@@ -107,7 +107,7 @@ bool createTD(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HAND
     {
       if((totalSecs - savedSecs) < 16)
       {
-        ZeroMemory(buf, noSecs*secSize);
+        memset(buf, 0, noSecs*secSize);
         ReadFile(boot, buf, (totalSecs - savedSecs)*secSize, &noBytesRead, NULL);
       }
       else

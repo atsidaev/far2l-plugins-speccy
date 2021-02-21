@@ -1,5 +1,6 @@
 #include <windows.h>
-#include "plugin.hpp"
+#include <pluginold.hpp>
+using namespace oldfar;
 #include "xCreate.hpp"
 #include "registry.hpp"
 #include "tools.hpp"
@@ -8,7 +9,7 @@
 
 PluginStartupInfo info;
 
-char   rootKeyName[80];
+Registry*  reg; 
 char   BOOTFile[256];
 char   comment[256];
 int    isDS;
@@ -25,16 +26,16 @@ char   fileName[256];
 void WINAPI _export SetStartupInfo(PluginStartupInfo *info_)
 {
   info = *info_;
-  wsprintf(rootKeyName, "%s%s", info.RootKey, "\\ZX\\xCreate");
+  reg = new Registry((char*)info.RootKey, L"/ZX/xCreate"); 
 
-  isDS         = getNumber(HKEY_CURRENT_USER, "IsDS", 1);
-  isWriteBOOT  = getNumber(HKEY_CURRENT_USER, "IsWriteBOOT", 0);
-  format       = getNumber(HKEY_CURRENT_USER, "DefaultFormat", FMT_TRD);
-  interleave   = getNumber(HKEY_CURRENT_USER, "Interleave", 2);
-  writeProtect = getNumber(HKEY_CURRENT_USER, "WriteProtect", 0);
-  isComment    = getNumber(HKEY_CURRENT_USER, "IsComment", 1);
-  getString(HKEY_CURRENT_USER, "DefaultBOOT", BOOTFile, "", sizeof(BOOTFile));
-  getString(HKEY_CURRENT_USER, "DefaultComment", comment, getMsg(MDefComment), sizeof(BOOTFile));
+  isDS         = reg->getNumber(HKEY_CURRENT_USER, L"IsDS", 1);
+  isWriteBOOT  = reg->getNumber(HKEY_CURRENT_USER, L"IsWriteBOOT", 0);
+  format       = reg->getNumber(HKEY_CURRENT_USER, L"DefaultFormat", FMT_TRD);
+  interleave   = reg->getNumber(HKEY_CURRENT_USER, L"Interleave", 2);
+  writeProtect = reg->getNumber(HKEY_CURRENT_USER, L"WriteProtect", 0);
+  isComment    = reg->getNumber(HKEY_CURRENT_USER, L"IsComment", 1);
+  reg->getString(HKEY_CURRENT_USER, L"DefaultBOOT", BOOTFile, "", sizeof(BOOTFile));
+  reg->getString(HKEY_CURRENT_USER, L"DefaultComment", comment, getMsg(MDefComment), sizeof(BOOTFile));
 }
 
 HANDLE WINAPI _export OpenPlugin(int openFrom, int item)
@@ -43,7 +44,7 @@ HANDLE WINAPI _export OpenPlugin(int openFrom, int item)
   {
     /*0*/DI_DOUBLEBOX,3,1,63,23,0,0,0,0,(char *)MCreate,
     /*1*/DI_TEXT,5,2,0,0,0,0,0,0,(char *)MFileName,
-    /*2*/DI_EDIT,5,3,61,0,TRUE,(int)"xCreateFileName",DIF_HISTORY,0,"",
+    /*2*/DI_EDIT,5,3,61,0,TRUE,(DWORD_PTR)"xCreateFileName",DIF_HISTORY,0,"",
 
     /*3*/DI_TEXT,3,4,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,"",
     /*4*/DI_TEXT,5,5,0,0,0,0,0,0,(char *)MFileFormat,
@@ -56,7 +57,7 @@ HANDLE WINAPI _export OpenPlugin(int openFrom, int item)
 
     /*11*/DI_TEXT,3,7,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,"",
     /*12*/DI_TEXT,5,8,0,0,0,0,0,0,(char *)MTitle,
-    /*13*/DI_EDIT,5,9,16,0,0,(int)"xCreateTitle",DIF_HISTORY,0,"",
+    /*13*/DI_EDIT,5,9,16,0,0,(DWORD_PTR)"xCreateTitle",DIF_HISTORY,0,"",
 
     /*14*/DI_TEXT,3,10,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,"",
     /*15*/DI_TEXT,5,11,0,0,0,0,0,0,(char *)MInterleave,
@@ -67,9 +68,9 @@ HANDLE WINAPI _export OpenPlugin(int openFrom, int item)
     /*19*/DI_CHECKBOX,5,15,0,0,0,0,0,0,(char *)MWriteProtect,
     /*20*/DI_CHECKBOX,5,16,0,0,0,0,0,0,(char *)MInstallDS,
     /*21*/DI_CHECKBOX,5,17,0,0,0,0,0,0,(char *)MWriteBOOT,
-    /*22*/DI_EDIT,5,18,61,0,0,(int)"xCreateBOOTName",DIF_HISTORY,0,BOOTFile,
+    /*22*/DI_EDIT,5,18,61,0,0,(DWORD_PTR)"xCreateBOOTName",DIF_HISTORY,0,BOOTFile,
     /*23*/DI_CHECKBOX,5,19,0,0,0,0,0,0,(char *)MComment,
-    /*24*/DI_EDIT,5,20,61,0,0,(int)"xCreateComment",DIF_HISTORY,0,comment,
+    /*24*/DI_EDIT,5,20,61,0,0,(DWORD_PTR)"xCreateComment",DIF_HISTORY,0,comment,
 
     /*25*/DI_TEXT,3,21,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,"",
     /*26*/DI_BUTTON,0,22,0,0,0,0,DIF_CENTERGROUP,1,(char *)MOk,
@@ -131,19 +132,19 @@ HANDLE WINAPI _export OpenPlugin(int openFrom, int item)
   if(dialogItems[8].Selected) format = FMT_FDD;
   if(dialogItems[9].Selected) format = FMT_UDI;
   if(dialogItems[10].Selected) format = FMT_TD;
-  lstrcpy(comment,  dialogItems[24].Data);
-  lstrcpy(BOOTFile, dialogItems[22].Data);
-  lstrcpy(title,    dialogItems[13].Data);
-  lstrcpy(fileName, dialogItems[2].Data);
+  strcpy(comment,  dialogItems[24].Data);
+  strcpy(BOOTFile, dialogItems[22].Data);
+  strcpy(title,    dialogItems[13].Data);
+  strcpy(fileName, dialogItems[2].Data);
   
-  setString(HKEY_CURRENT_USER, "DefaultComment", comment);
-  setString(HKEY_CURRENT_USER, "DefaultBOOT",    BOOTFile);
-  setNumber(HKEY_CURRENT_USER, "IsDS",           isDS);
-  setNumber(HKEY_CURRENT_USER, "IsWriteBOOT",    isWriteBOOT);
-  setNumber(HKEY_CURRENT_USER, "DefaultFormat",  format);
-  setNumber(HKEY_CURRENT_USER, "Interleave",     interleave);
-  setNumber(HKEY_CURRENT_USER, "WriteProtect",   writeProtect);
-  setNumber(HKEY_CURRENT_USER, "IsComment",      isComment);
+  reg->setString(HKEY_CURRENT_USER, L"DefaultComment", comment);
+  reg->setString(HKEY_CURRENT_USER, L"DefaultBOOT",    BOOTFile);
+  reg->setNumber(HKEY_CURRENT_USER, L"IsDS",           isDS);
+  reg->setNumber(HKEY_CURRENT_USER, L"IsWriteBOOT",    isWriteBOOT);
+  reg->setNumber(HKEY_CURRENT_USER, L"DefaultFormat",  format);
+  reg->setNumber(HKEY_CURRENT_USER, L"Interleave",     interleave);
+  reg->setNumber(HKEY_CURRENT_USER, L"WriteProtect",   writeProtect);
+  reg->setNumber(HKEY_CURRENT_USER, L"IsComment",      isComment);
 
   create(fileName, title, writeProtect, isDS, format, interleave, isWriteBOOT?BOOTFile:0, isComment&&comment[0]?comment:0);
 

@@ -9,6 +9,8 @@
 #define GAP3Size 60
 #define GAP4Size 192
 
+#pragma pack(1)
+
 struct FDITrk
 {
   DWORD offset;
@@ -63,11 +65,13 @@ struct TDInfo
   char text[0x248];
 };
 
+#pragma pack()
+
 bool createTRD(Track0 track0, int totalSecs, HANDLE image, HANDLE boot);
 bool createFDI(Track0 track0, int totalSecs, BYTE *interleave, BYTE writeProtect, HANDLE image, HANDLE boot, char *comment);
 bool createSCL(Track0 track0, int totalSecs, HANDLE image, HANDLE boot);
 bool createFDD(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HANDLE boot);
-bool createUDI(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HANDLE boot, char *comment);
+bool createUDI(char* fileName, Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HANDLE boot, char *comment);
 bool createTD (Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HANDLE boot, char *comment);
 
 #endif

@@ -11,7 +11,7 @@ bool createFDD(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HAN
   DWORD noBytesRead;
 
   BYTE emptySec[secSize];
-  ZeroMemory(emptySec, secSize);
+  memset(emptySec, 0, secSize);
 
   //заголовок файла
   BYTE FDDHdr[] =
@@ -70,7 +70,7 @@ bool createFDD(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HAN
     }
 
     BYTE buf[secSize*noSecs];
-    ZeroMemory(buf, noSecs*secSize);
+    memset(buf, 0, noSecs*secSize);
     
     if(savedSecs < totalSecs)
     {

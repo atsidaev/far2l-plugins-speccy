@@ -6,6 +6,8 @@ const int noTrks  = 80;  // число треков (целиндров) на о
 const int noSecs  = 16;  // число секторов не треке
 const int secSize = 256; // размер сектора в байтах
 
+#pragma pack(1)
+
 struct FileHdr
 {
   char name[8];
@@ -58,5 +60,7 @@ struct SCLFileHdr
   WORD length;
   BYTE noSecs;
 };
+
+#pragma pack()
 
 #endif

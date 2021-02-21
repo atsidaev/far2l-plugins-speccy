@@ -9,7 +9,7 @@ bool createFDI(Track0 track0, int totalSecs, BYTE *interleave, BYTE writeProtect
   DWORD noBytesRead;
 
   BYTE emptySec[secSize];
-  ZeroMemory(emptySec, secSize);
+  memset(emptySec, 0, secSize);
 
   //заголовок файла
   BYTE FDIHdr[] =
@@ -46,8 +46,8 @@ bool createFDI(Track0 track0, int totalSecs, BYTE *interleave, BYTE writeProtect
   //комментарий
   if(comment)
   {
-    WriteFile(image, comment, lstrlen(comment), &noBytesWritten, NULL);
-    WriteFile(image, emptySec, 146-lstrlen(comment), &noBytesWritten, NULL);
+    WriteFile(image, comment, strlen(comment), &noBytesWritten, NULL);
+    WriteFile(image, emptySec, 146-strlen(comment), &noBytesWritten, NULL);
   }
   else
     WriteFile(image, emptySec, 146, &noBytesWritten, NULL);

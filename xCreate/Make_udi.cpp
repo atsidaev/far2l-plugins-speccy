@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <fstream>
 #include "trdos.hpp"
 #include "make.hpp"
 
@@ -20,7 +21,7 @@ WORD wdcrc(BYTE *ptr, WORD size, BYTE dataId)
    return (WORD) (((crc1 & 0xFF00) >> 8) | ((crc1 & 0xFF) << 8));
 }
 
-bool createUDI(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HANDLE boot, char *comment)
+bool createUDI(char* fileName, Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HANDLE boot, char *comment)
 {
   int i;
   const WORD emptySecCRC = 0x22E1;
@@ -30,16 +31,16 @@ bool createUDI(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HAN
   DWORD fileSize = 0x112CF0;
 
   BYTE emptySec[secSize];
-  ZeroMemory(emptySec, secSize);
+  memset(emptySec, 0, secSize);
 
   BYTE GAP[192];
-  FillMemory(GAP, sizeof(GAP), 0x4E);
+  memset(GAP, 0x4E, sizeof(GAP));
 
   BYTE sinc[12];
-  ZeroMemory(sinc, sizeof(sinc));
+  memset(sinc, 0, sizeof(sinc));
 
   BYTE CLC[782];
-  ZeroMemory(CLC, sizeof(CLC));
+  memset(CLC, 0, sizeof(CLC));
   for(i = 0; i < noSecs/4; ++i)
   {
     CLC[  2+i*189] = 0xC0;
@@ -67,7 +68,7 @@ bool createUDI(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HAN
   };
   if(comment)
   {
-    fileSize += lstrlen(comment)+1;
+    fileSize += strlen(comment)+1;
     hdr.flag = 1;
   }
   hdr.fileSize = fileSize;
@@ -87,7 +88,7 @@ bool createUDI(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HAN
     {
       if((totalSecs - savedSecs) < 16)
       {
-        ZeroMemory(buf, noSecs*secSize);
+        memset(buf, 0, noSecs*secSize);
         ReadFile(boot, buf, (totalSecs - savedSecs)*secSize, &noBytesRead, NULL);
       }
       else
@@ -145,29 +146,27 @@ bool createUDI(Track0 track0, int totalSecs, BYTE *interleave, HANDLE image, HAN
   }
 
   if(comment)
-    WriteFile(image, comment, lstrlen(comment)+1, &noBytesWritten, NULL);
+    WriteFile(image, comment, strlen(comment)+1, &noBytesWritten, NULL);
 
-  long CRC32 = 0xFFFFFFFF;
+  std::ifstream ifs(fileName, std::ios_base::binary);
+  if (!ifs.good())
+    return false;
 
-  HANDLE mh = CreateFileMapping(image, 0, PAGE_READONLY, 0, 0, NULL);
-  if(mh != NULL)
+  int32_t CRC = 0xFFFFFFFF;
+  unsigned char value;
+  for(DWORD i = 0; i < fileSize; i++)
   {
-    void *buf = MapViewOfFile(mh, FILE_MAP_READ, 0, 0, 0);
-
-    for (DWORD i = 0; i < fileSize; i++)
-    {
-      DWORD temp;
-      CRC32 ^= -1 ^ *(((BYTE*)buf)+i);
-      for(BYTE k = 8; k--;)
-        { temp = -(CRC32 & 1); CRC32 >>= 1; CRC32 ^= 0xEDB88320 & temp; }
-      CRC32 ^= -1;
-    }
-
-    UnmapViewOfFile(buf);
-    CloseHandle(mh);
-  }
-
-  WriteFile(image, &CRC32, sizeof(CRC32), &noBytesWritten, NULL);
+    DWORD temp;
+    ifs.read(reinterpret_cast<char*>(&value), 1);
+    CRC ^= -1 ^ value;
+    for(BYTE k = 8; k--;)
+      { temp = -(CRC & 1); CRC >>= 1; CRC ^= 0xEDB88320 & temp; }
+    CRC ^= -1;
+  } 
+  
+  ifs.close();
+  
+  WriteFile(image, &CRC, sizeof(CRC), &noBytesWritten, NULL);
 
   return true;
 }
