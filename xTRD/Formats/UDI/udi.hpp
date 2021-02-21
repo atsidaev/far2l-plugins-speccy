@@ -29,9 +29,6 @@ struct TrackHdr
 
 #pragma pack()
 
-BYTE readCByte (BYTE *ctr, WORD byte)
-{
-  return ( ctr[byte>>3] & (1<<(byte%8)) );
-};
+BYTE readCByte (BYTE *ctr, WORD byte);
 
 #endif

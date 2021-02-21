@@ -4,7 +4,7 @@ OBJFILES = ../shared/debug.o ../shared/registry.o ../shared/widestring.o \
            Formats/TRD/trd.o \
            Formats/FDD/fdd.o Formats/FDD/filer.o \
            Formats/FDI/fdi.o Formats/FDI/filer.o \
-           Formats/TELEDISK/teledisk.o Formats/TELEDISK/filer.o Formats/TELEDISK/td_tools.o 
-           #          Formats/UDI/udi.o Formats/UDI/filer.o \
+           Formats/TELEDISK/teledisk.o Formats/TELEDISK/filer.o Formats/TELEDISK/td_tools.o \
+           Formats/UDI/udi.o Formats/UDI/filer.o
 
 include ../include.mk
