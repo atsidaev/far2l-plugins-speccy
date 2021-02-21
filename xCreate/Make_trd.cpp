@@ -9,7 +9,7 @@ bool createTRD(Track0 track0, int totalSecs, HANDLE image, HANDLE boot)
   DWORD noBytesRead;
 
   BYTE emptySec[secSize];
-  ZeroMemory(emptySec, secSize);
+  memset(emptySec, 0, secSize);
 
   //дорожка 0
   SetFilePointer(image, 0, NULL, FILE_BEGIN);

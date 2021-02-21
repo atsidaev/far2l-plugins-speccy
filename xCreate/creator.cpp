@@ -4,6 +4,7 @@
 #include "creator.hpp"
 #include "lang.hpp"
 #include "make.hpp"
+#include "../shared/widestring.hpp"
 
 extern PluginStartupInfo info;
 
@@ -22,7 +23,7 @@ char* pointToName(char *path)
 
 char* pointToExt(char *path)
 {
-  int i = lstrlen(path);
+  int i = strlen(path);
   char *ptr = path + i;
   while(*ptr != '.' && i != 0) { ptr--; i--; }
   if(i)
@@ -92,13 +93,13 @@ bool create(char *fileName, char *title, int writeProtect, int isDS, int format,
   DWORD noBytesRead;
   
   Track0 track0;
-  ZeroMemory(&track0, sizeof(Track0));
+  memset(&track0, 0, sizeof(Track0));
 
   HANDLE screen = info.SaveScreen(0,0,-1,-1);
 
   if(bootName)
   {
-    boot = CreateFile(bootName,
+    boot = CreateFile(_W(bootName).c_str(),
                       GENERIC_READ,
                       FILE_SHARE_READ | FILE_SHARE_WRITE,
                       NULL,
@@ -138,7 +139,7 @@ bool create(char *fileName, char *title, int writeProtect, int isDS, int format,
         {
           HoHdr hdr;
           ReadFile(boot, &hdr, sizeof(HoHdr), &noBytesRead, 0);
-          CopyMemory(&track0.files[0], &hdr, sizeof(HoHdr)-4);
+          memcpy(&track0.files[0], &hdr, sizeof(HoHdr)-4);
           totalSecs = hdr.noSecs;
           track0.files[0].noSecs = hdr.noSecs;
           noFiles = 1;
@@ -152,7 +153,7 @@ bool create(char *fileName, char *title, int writeProtect, int isDS, int format,
           {
             SCLFileHdr hdr;
             ReadFile(boot, &hdr, sizeof(SCLFileHdr), &noBytesRead, 0);
-            CopyMemory(&track0.files[i], &hdr, sizeof(SCLFileHdr));
+            memcpy(&track0.files[i], &hdr, sizeof(SCLFileHdr));
             totalSecs += hdr.noSecs;
           }
           noFiles = no_files;
@@ -196,9 +197,9 @@ bool create(char *fileName, char *title, int writeProtect, int isDS, int format,
               ext = ".td0";
               break;
   }
-  if(!pointToExt(fileName)) lstrcat(fileName, ext);
+  if(!pointToExt(fileName)) strcat(fileName, ext);
 
-  image = CreateFile(fileName,
+  image = CreateFile(_W(fileName).c_str(),
                      GENERIC_READ | GENERIC_WRITE,
                      0,
                      NULL,
@@ -220,7 +221,7 @@ bool create(char *fileName, char *title, int writeProtect, int isDS, int format,
   }
 
   if((format != FMT_FDI) && writeProtect)
-    SetFileAttributes(fileName, FILE_ATTRIBUTE_READONLY);
+    SetFileAttributes(_W(fileName).c_str(), FILE_ATTRIBUTE_READONLY);
 
   char* msgItems[2];
   msgItems[0] = NULL;
@@ -247,7 +248,7 @@ bool create(char *fileName, char *title, int writeProtect, int isDS, int format,
   track0.noDelFiles   = noDelFiles;
   track0.noFreeSecs   = 2544 - totalSecs;
 
-  FillMemory(track0.title, 11, ' ');
+  memset(track0.title, ' ', 11);
   for(i = 0; i < 11; ++i)
   {
     if(title[i] == 0) break;
@@ -279,7 +280,7 @@ bool create(char *fileName, char *title, int writeProtect, int isDS, int format,
               createFDD(track0, totalSecs, sectors[interleave-1], image, boot);
               break;
     case FMT_UDI:
-              createUDI(track0, totalSecs, sectors[interleave-1], image, boot, comment);
+              createUDI(fileName, track0, totalSecs, sectors[interleave-1], image, boot, comment);
               break;
     case FMT_TD:
               createTD(track0, totalSecs, sectors[interleave-1], image, boot, comment);
