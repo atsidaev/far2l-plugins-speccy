@@ -96,7 +96,7 @@ int Manager::makeDirectory(char* dirName, int opMode)
   FarDialogItem dialogItems[sizeof(items)/sizeof(items[0])];
   initDialogItems(items, dialogItems, sizeof(items)/sizeof(items[0]));
   
-  // если надо показать диалог, то покажем
+  // ╨╡╤Б╨╗╨╕ ╨╜╨░╨┤╨╛ ╨┐╨╛╨║╨░╨╖╨░╤В╤М ╨┤╨╕╨░╨╗╨╛╨│, ╤В╨╛ ╨┐╨╛╨║╨░╨╢╨╡╨╝
   if((opMode & OPM_SILENT) == 0)
   {
     int askCode = startupInfo.Dialog(startupInfo.ModuleNumber,

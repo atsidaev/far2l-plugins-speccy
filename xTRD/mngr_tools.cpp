@@ -51,7 +51,7 @@ bool Manager::write(int trk, int sec, BYTE* buf)
 
 bool Manager::readInfo(void)
 {
-  // Ø‡Æ¢•‡Ô•¨ ≠• ®ß¨•≠®´·Ô ´® ‰†©´ ≠† §®·™•
+  // –ø—Ä–æ–≤–µ—Ä—è–µ–º –Ω–µ –∏–∑–º–µ–Ω–∏–ª—Å—è –ª–∏ —Ñ–∞–π–ª –Ω–∞ –¥–∏—Å–∫–µ
   WIN32_FIND_DATA data;
   HANDLE h = FindFirstFile(_W(hostFileName).c_str(), &data);
   if(h == INVALID_HANDLE_VALUE) return false;
@@ -73,10 +73,10 @@ bool Manager::readInfo(void)
     if(!fmt->reload(img)) return false;
     if(!openHostFile()) return false;
     
-    // Á®‚†•¨ 0-„Ó §Æ‡Æ¶™„
+    // —á–∏—Ç–∞–µ–º 0-—É—é –¥–æ—Ä–æ–∂–∫—É
     for(int i = 0; i < 16; ++i) read(0, i, zeroTrk+i*sectorSize);
 
-    // ØÆ´„Á†•¨ §†≠≠Î• Æ ‰†©´†Â
+    // –ø–æ–ª—É—á–∞–µ–º –¥–∞–Ω–Ω—ã–µ –æ —Ñ–∞–π–ª–∞—Ö
     BYTE* ptr = zeroTrk;
     for(; noFiles < 142; ++noFiles)
     {
@@ -84,15 +84,15 @@ bool Manager::readInfo(void)
       if(*ptr == 0x01) ++noDelFiles;
 
       memcpy(&files[noFiles], ptr, sizeof(FileHdr));
-      // ·‚®‡†•¨ ™†‚†´Æ£, Á‚Æ°Î ¢ §†´Ï≠•©Ë•¨
-      // Ø‡ÆÈ• °Î´Æ §•´†‚Ï MOVE
+      // —Å—Ç–∏—Ä–∞–µ–º –∫–∞—Ç–∞–ª–æ–≥, —á—Ç–æ–±—ã –≤ –¥–∞–ª—å–Ω–µ–π—à–µ–º
+      // –ø—Ä–æ—â–µ –±—ã–ª–æ –¥–µ–ª–∞—Ç—å MOVE
       *ptr = 0x00; 
       ptr += sizeof(FileHdr);
     }
     
     memcpy(&diskInfo, zeroTrk+8*sectorSize+0xE1, sizeof(DiskHdr));
     
-    // Æ°‡†°†‚Î¢†•¨ DirSys
+    // –æ–±—Ä–∞–±–∞—Ç—ã–≤–∞–µ–º DirSys
     BYTE folderName[11];
     if(curFolderNum != 0)
       memcpy(folderName, folders[curFolderNum-1], 11);
@@ -117,8 +117,8 @@ bool Manager::readInfo(void)
         ptr += 11;
       }
       dsOk = (dsCRC == calcDScrc());
-      // ·‚®‡†•¨ ™†‚†´Æ£, Á‚Æ°Î ¢ §†´Ï≠•©Ë•¨
-      // Ø‡ÆÈ• °Î´Æ §•´†‚Ï MOVE
+      // —Å—Ç–∏—Ä–∞–µ–º –∫–∞—Ç–∞–ª–æ–≥, —á—Ç–æ–±—ã –≤ –¥–∞–ª—å–Ω–µ–π—à–µ–º
+      // –ø—Ä–æ—â–µ –±—ã–ª–æ –¥–µ–ª–∞—Ç—å MOVE
       ptr = zeroTrk+10*sectorSize+11;
       for(int i = 0; i < noFolders; ++i) *(ptr + 11*i) = 0;
       if(!dsOk)
@@ -203,7 +203,7 @@ void Manager::makePCNames(void)
       }
     }
 
-    // Æ°‡†°†‚Î¢†•¨ ·Ø•Ê®†´Ï≠Î• ®¨•≠† „·‚‡Æ©·‚¢
+    // –æ–±—Ä–∞–±–∞—Ç—ã–≤–∞–µ–º —Å–ø–µ—Ü–∏–∞–ª—å–Ω—ã–µ –∏–º–µ–Ω–∞ —É—Å—Ç—Ä–æ–π—Å—Ç–≤
     if(noChars == 3 || noChars == 4)
     {
       if(!memcmpi((const char*)to, "com", 3) ||
@@ -251,7 +251,7 @@ void Manager::makePCNames(void)
       detector->getType(typeNum, (char*)(to+dotPos+2));
       pcFiles[fNum].skipHeader = detector->getSkipHeader(typeNum);
     }
-    // Æ°‡†°†‚Î¢†•¨ ¨≠Æ£Æ‚Æ¨≠Î• zxzip †‡Â®¢Î
+    // –æ–±—Ä–∞–±–∞—Ç—ã–≤–∞–µ–º –º–Ω–æ–≥–æ—Ç–æ–º–Ω—ã–µ zxzip –∞—Ä—Ö–∏–≤—ã
     if(fNum != 0 &&
        !memcmp(from, "********ZIP", 11) &&
        !memcmp(&files[fNum-1].type, "ZIP", 3))
@@ -261,7 +261,7 @@ void Manager::makePCNames(void)
       else
         strncpy((char*)to, pcFiles[fNum-1].name, strlen(pcFiles[fNum-1].name));
     }
-    // Æ°‡†°†‚Î¢†•¨ ØÆ¢‚Æ‡ÔÓÈ®•·Ô ®¨•≠†
+    // –æ–±—Ä–∞–±–∞—Ç—ã–≤–∞–µ–º –ø–æ–≤—Ç–æ—Ä—è—é—â–∏–µ—Å—è –∏–º–µ–Ω–∞
     int i = fNum;
     while(i-- > 0)
     {
@@ -271,7 +271,7 @@ void Manager::makePCNames(void)
         BYTE ch = pcFiles[i].name[len];
         ch = (ch != 0) ? ch+1 : '0';
         
-        // ¢Æ‚ ‚†™†Ô ™‡®¢†Ô Æ°‡†°Æ‚™† :
+        // –≤–æ—Ç —Ç–∞–∫–∞—è –∫—Ä–∏–≤–∞—è –æ–±—Ä–∞–±–æ—Ç–∫–∞ :
         if(ch == '9'+1) ch = 'A'; 
         if(ch == 'Z'+1) ch = 'a';
         if(ch == 'z'+1) ch = '0';
@@ -281,7 +281,7 @@ void Manager::makePCNames(void)
       }
     }
   }
-  // Æ°‡†°†‚Î¢†•¨ ®¨•≠† ™†‚†´Æ£Æ¢
+  // –æ–±—Ä–∞–±–∞—Ç—ã–≤–∞–µ–º –∏–º–µ–Ω–∞ –∫–∞—Ç–∞–ª–æ–≥–æ–≤
   for(int fNum = 0; fNum < noFolders; ++fNum)
   {
     char* ptr = pcFolders[fNum];

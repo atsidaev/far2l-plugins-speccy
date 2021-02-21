@@ -21,7 +21,7 @@ Detector*  detector;
 
 void WINAPI _export SetStartupInfo(PluginStartupInfo *info)
 {
-  // получили свою копию PluginStartupInfo
+  // ╨┐╨╛╨╗╤Г╤З╨╕╨╗╨╕ ╤Б╨▓╨╛╤О ╨║╨╛╨┐╨╕╤О PluginStartupInfo
   startupInfo = *info;
 
   reg                    = new Registry((char*)startupInfo.RootKey, L"/ZX/xTRD/");

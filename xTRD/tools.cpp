@@ -265,19 +265,19 @@ WORD calculateCheckSum(HoHdr& hdr)
 char* make8x3name(const char* source, char* dest)
 {
   const char* ptr = source;
-  // �����㥬 ���
+  // копируем имя
   for(int i = 0; i < 8; ++i)
   {
     if(!*ptr || *ptr == '.') break;
     dest[i] = *ptr++;
   }
-  // �᫨ ��� ᫨誮� ������� - �ய�᪠�� ���⮪
+  // если имя слишком длинное - пропускаем остаток
   while(*ptr && *ptr != '.') ++ptr;
 
   if(*ptr == '.')
   {
     ++ptr;
-    // �����㥬 ���७��
+    // копируем расширение
     for(int i = 0; i < 3; ++i)
     {
       if(!*ptr) break;

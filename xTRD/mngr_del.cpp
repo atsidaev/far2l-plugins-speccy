@@ -50,7 +50,7 @@ void Manager::move(void)
           files[i].trk = toTrk;
           files[i].sec = toSec;
           int noSecs = files[i].noSecs;
-          // ��७�ᨬ 䠩�
+          // переносим файл
           for(int j = 0; j < noSecs; ++j)
           {
             BYTE buf[sectorSize];
@@ -86,8 +86,8 @@ void Manager::move(void)
       {
         if(curFolderNum == i+1)
         {
-          curFolderNum = 0; // �᫨ 㤠���� ⥪�騩 ��⠫��
-          *curFolder   = 0; // � ���室�� � ��७�
+          curFolderNum = 0; // если удалили текущий каталог
+          *curFolder   = 0; // то переходим в корень
         }
         if(curFolderNum > i+1) --curFolderNum;
         for(int j = 0; j < noFiles; ++j)
@@ -111,13 +111,13 @@ ExitCode Manager::markFolder(int fNum)
 {
   if(userAction == ASK_USER && !keepSilence)
   {
-    int noItems = 0; // ��⠥� �᫮ ��������� 䠩��� � ��⠫����
+    int noItems = 0; // считаем число вложенных файлов и каталогов
     for(int i = 0; i < noFiles; ++i)
       if(fileMap[i] == fNum) ++noItems;
     for(int i = 0; i < noFolders; ++i)
       if(folderMap[i] == fNum) ++noItems;
     
-    if(noItems > 0) // �᫨ ��⠫�� �� ���⮩, � ...
+    if(noItems > 0) // если каталог не пустой, то ...
     {
       char *msgItems[7];
       msgItems[0] = getMsg(MDeleteFolder);
@@ -194,8 +194,8 @@ int Manager::deleteFiles(PluginPanelItem *panelItem, int noItems, int opMode)
     return FALSE;
   }
 
-  // ����室��� ��� ���४⭮�� ��६�饭�� 䠩���
-  // �� ����� ��ࠧ�
+  // необходимо для корректного перемещения файлов
+  // на одном образе
   readInfo();
 
   keepSilence = opMode & OPM_SILENT;
