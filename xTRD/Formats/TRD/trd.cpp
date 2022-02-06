@@ -20,7 +20,7 @@ bool WINAPI _export trd_isImage(const char* fileName, const BYTE* data, int size
   if(hostFile == INVALID_HANDLE_VALUE) return false;
   FindClose(hostFile);
 
-  if(findData.nFileSizeLow%sectorSize || findData.nFileSizeLow < 16*sectorSize)
+  if(findData.nFileSize%sectorSize || findData.nFileSize < 16*sectorSize)
     return false;
   return true;
 }

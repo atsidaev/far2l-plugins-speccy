@@ -1,6 +1,6 @@
 #ifndef xTRD_HPP
 #define xTRD_HPP
-#include "pluginold.hpp"
+#include "far2sdk/farplug-mb.h"
 using namespace oldfar;
 #include "types.hpp"
 

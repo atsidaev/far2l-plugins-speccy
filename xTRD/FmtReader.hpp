@@ -1,7 +1,7 @@
 #ifndef FMTREADER_HPP
 #define FMTREADER_HPP
 #include <windows.h>
-#include "pluginold.hpp"
+#include "far2sdk/farplug-mb.h"
 
 typedef bool   (WINAPI *IS_IMAGE)(const char *name, const unsigned char* data, int size);
 typedef HANDLE (WINAPI *INIT)    (const char* fileName);

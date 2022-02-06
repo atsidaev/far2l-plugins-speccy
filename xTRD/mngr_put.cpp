@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "pluginold.hpp"
+#include "far2sdk/farplug-mb.h"
 
 #include "manager.hpp"
 #include "types.hpp"

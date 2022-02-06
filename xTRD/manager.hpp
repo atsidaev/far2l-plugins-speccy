@@ -2,9 +2,9 @@
 #define MANAGER_HPP
 
 #include <windows.h>
-#include "pluginold.hpp"
+#include "far2sdk/farplug-mb.h"
 using namespace oldfar;
-#include "fmtReader.hpp"
+#include "FmtReader.hpp"
 #include "types.hpp"
 
 class Manager

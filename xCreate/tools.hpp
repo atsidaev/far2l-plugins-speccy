@@ -1,7 +1,7 @@
 #ifndef utils_hpp
 #define utils_hpp
 
-#include <pluginold.hpp>
+#include <far2sdk/farplug-mb.h>
 using namespace oldfar;
 #include "trdos.hpp"
 

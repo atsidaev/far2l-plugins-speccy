@@ -1,6 +1,6 @@
 #ifndef xSCL_HPP
 #define xSCL_HPP
-#include <pluginold.hpp>
+#include <far2sdk/farplug-mb.h>
 using namespace oldfar;
 
 
