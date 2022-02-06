@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "pluginold.hpp"
+#include "far2sdk/farplug-mb.h"
 using namespace oldfar;
 
 #include "manager.hpp"
@@ -295,7 +295,7 @@ int Manager::getFindData(PluginPanelItem **pPanelItem, int *pNoItems, int opMode
     
     item[iNum].FindData.dwFileAttributes = files[fNum].name[0] == 0x01 ? FILE_ATTRIBUTE_HIDDEN : FILE_ATTRIBUTE_NORMAL;
     strcpy(item[iNum].FindData.cFileName, pcFiles[fNum].name);
-    item[iNum].FindData.nFileSizeLow = files[fNum].size;
+    item[iNum].FindData.nFileSize = files[fNum].size;
 
     item[iNum].CustomColumnNumber = 7;
     item[iNum].CustomColumnData = new LPSTR[item[iNum].CustomColumnNumber];

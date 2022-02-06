@@ -1,5 +1,5 @@
 #include <windows.h>
-#include <pluginold.hpp>
+#include <far2sdk/farplug-mb.h>
 using namespace oldfar;
 
 #include "manager.hpp"
@@ -40,7 +40,7 @@ int Manager::createFile(HANDLE& file, char* name, int& action)
       if(data.ftLastWriteTime.dwLowDateTime == 0 &&
          data.ftLastWriteTime.dwHighDateTime == 0)
       {
-        sprintf(param, getMsg(MDestination1), data.nFileSizeLow);
+        sprintf(param, getMsg(MDestination1), data.nFileSize);
       }
       else
       {
@@ -51,7 +51,7 @@ int Manager::createFile(HANDLE& file, char* name, int& action)
         FileTimeToSystemTime(&lastWriteTime, &time);
         
         sprintf(param, getMsg(MDestination2),
-                 data.nFileSizeLow,
+                 data.nFileSize,
                  time.wDay, time.wMonth, time.wYear,
                  time.wHour, time.wMinute, time.wSecond);
       }

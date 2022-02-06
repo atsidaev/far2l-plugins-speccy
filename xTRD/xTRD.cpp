@@ -2,7 +2,7 @@
 
 #include "xTRD.hpp"
 #include "manager.hpp"
-#include "fmtReader.hpp"
+#include "FmtReader.hpp"
 #include "registry.hpp"
 #include "detector.hpp"
 #include "tools.hpp"

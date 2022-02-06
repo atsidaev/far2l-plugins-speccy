@@ -1,5 +1,5 @@
 #include <windows.h>
-#include <pluginold.hpp>
+#include <far2sdk/farplug-mb.h>
 using namespace oldfar;
 
 #include "manager.hpp"
@@ -265,7 +265,7 @@ int Manager::putFiles(PluginPanelItem *panelItem, int noItems, int move, int opM
     }
     if(file_type == FMT_PLAIN)
     {
-      DWORD fileSize  = panelItem[iNum].FindData.nFileSizeLow;
+      DWORD fileSize  = panelItem[iNum].FindData.nFileSize;
       int   sizeInSec = fileSize/sectorSize  + (fileSize%sectorSize ? 1 : 0);
       int   no_files  = sizeInSec/255 + (sizeInSec%255 ? 1: 0);
       if(!no_files) no_files = 1;

@@ -63,7 +63,7 @@ bool Manager::readInfo(void)
   }
   
   if(CompareFileTime(&data.ftLastWriteTime, &lastModifed.ftLastWriteTime) != 0 ||
-     data.nFileSizeLow != lastModifed.nFileSizeLow || op.reread)
+     data.nFileSize != lastModifed.nFileSize || op.reread)
   {
     op.reread    = false;
     lastModifed  = data;

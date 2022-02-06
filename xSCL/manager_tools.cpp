@@ -1,5 +1,5 @@
 #include <windows.h>
-#include <pluginold.hpp>
+#include <far2sdk/farplug-mb.h>
 using namespace oldfar;
 
 #include "manager.hpp"
@@ -164,7 +164,7 @@ bool Manager::readInfo(void)
   FindClose(h);
   
   if(CompareFileTime(&data.ftLastWriteTime, &lastModifed.ftLastWriteTime) != 0 ||
-     data.nFileSizeLow != lastModifed.nFileSizeLow)
+     data.nFileSize != lastModifed.nFileSize)
   {
     lastModifed = data;
     if(!openHostFile()) return false;

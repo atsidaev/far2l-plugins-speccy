@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "pluginold.hpp"
+#include "far2sdk/farplug-mb.h"
 
 #include "manager.hpp"
 #include "types.hpp"
@@ -61,7 +61,7 @@ ExitCode createFile(char* name)
       if(data.ftLastWriteTime.dwLowDateTime == 0 &&
          data.ftLastWriteTime.dwHighDateTime == 0)
       {
-        sprintf(param, getMsg(MDestination1), data.nFileSizeLow);
+        sprintf(param, getMsg(MDestination1), data.nFileSize);
       }
       else
       {
@@ -72,7 +72,7 @@ ExitCode createFile(char* name)
         FileTimeToSystemTime(&lastWriteTime, &time);
         
         sprintf(param, getMsg(MDestination2),
-                 data.nFileSizeLow,
+                 data.nFileSize,
                  time.wDay, time.wMonth, time.wYear,
                  time.wHour, time.wMinute, time.wSecond);
       }
