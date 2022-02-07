@@ -1,5 +1,5 @@
 #include <windows.h>
-#include <pluginold.hpp>
+#include <far2sdk/farplug-mb.h>
 using namespace oldfar;
 #include "xCreate.hpp"
 #include "registry.hpp"
@@ -88,7 +88,6 @@ HANDLE WINAPI _export OpenPlugin(int openFrom, int item)
     dialogItems[16].Selected = TRUE;
   else
     dialogItems[17].Selected = TRUE;
-
   switch(format)
   {
     case FMT_TRD:
