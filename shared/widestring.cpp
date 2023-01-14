@@ -24,3 +24,12 @@ std::string _N(wchar_t* s)
 	return converted_str;
 }
 
+const wchar_t* _WW(char* str)
+{
+	return _W(str).c_str();
+}
+
+const char* _NN(wchar_t* str)
+{
+	return _N(str).c_str();
+}

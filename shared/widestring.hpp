@@ -6,4 +6,7 @@
 std::wstring _W(char* s);
 std::string _N(wchar_t* s);
 
+const wchar_t* _WW(const char*);
+const char* _NN(const wchar_t*);
+
 #endif

@@ -1,6 +1,8 @@
 #ifndef XiSD_hpp
 #define XiSD_hpp
-#include "plugin.hpp"
+#include <windows.h>
+#include "far2sdk/farplug-mb.h"
+using namespace oldfar;
 #include "types.hpp"
 
 extern "C" {

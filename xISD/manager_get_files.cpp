@@ -1,4 +1,6 @@
 #include <windows.h>
+#include "far2sdk/farplug-mb.h"
+using namespace oldfar;
 
 #include "manager.hpp"
 #include "tools.hpp"
@@ -6,6 +8,8 @@
 #include "iSDOS_tools.hpp"
 #include "iterator.hpp"
 #include "lang.hpp"
+
+#include "../shared/widestring.hpp"
 
 extern PluginStartupInfo startupInfo;
 
@@ -17,7 +21,7 @@ int Manager::writeFile(const char *name, const UniHdr& hdr)
      hdr.attr & FLAG_DELETE_PROTECT) attr |= FILE_ATTRIBUTE_READONLY;
   if(hdr.attr & FLAG_HIDDEN)         attr |= FILE_ATTRIBUTE_HIDDEN;
 
-  HANDLE file = CreateFile(name,
+  HANDLE file = CreateFile(_W((char*)name).c_str(),
                            GENERIC_WRITE,
                            FILE_SHARE_READ | FILE_SHARE_WRITE,
                            NULL,
@@ -45,7 +49,7 @@ int Manager::writeFile(const char *name, const UniHdr& hdr)
   if(size != 0)
   {
     u8  buf[blockSize];
-    u32 noBytesWritten;
+    DWORD noBytesWritten;
     
     Iterator cur(filer, img, hdr), end;
     while(cur != end)
@@ -62,7 +66,7 @@ int Manager::writeFile(const char *name, const UniHdr& hdr)
     }
   }
   FILETIME modificationTime;
-  ZeroMemory(&modificationTime, sizeof(modificationTime));
+  memset(&modificationTime, 0, sizeof(modificationTime));
   DosDateTimeToFileTime(hdr.date, hdr.file.time, &modificationTime);
   LocalFileTimeToFileTime(&modificationTime, &modificationTime);
 
@@ -82,20 +86,19 @@ int Manager::writeFile(const char *name, const UniHdr& hdr)
   FILETIME   creationTime;
   SystemTimeToFileTime(&laddr, &creationTime);
   SetFileTime(file, &creationTime, NULL, &modificationTime);
-  
   CloseHandle(file);
   return 1;
 }
 
 int isFileExist(const char* name, const UniHdr& hdr, Action& action)
 {
-  // Ø‡Æ¢•‡Ô•¨ ≠†´®Á®• ‰†©´†
+  // –ø—Ä–æ–≤–µ—Ä—è–µ–º –Ω–∞–ª–∏—á–∏–µ —Ñ–∞–π–ª–∞
   WIN32_FIND_DATA data;
-  HANDLE h = FindFirstFile(name, &data);
+  HANDLE h = FindFirstFile(_W((char*)name).c_str(), &data);
   if(h != INVALID_HANDLE_VALUE)
   {
     FindClose(h);
-    // ‰†©´ · ‚†™®¨ ®¨•≠•¨ ·„È•·‚¢„•‚
+    // —Ñ–∞–π–ª —Å —Ç–∞–∫–∏–º –∏–º–µ–Ω–µ–º —Å—É—â–µ—Å—Ç–≤—É–µ—Ç
     if(action == SKIP_ALL) return 0;
     if(action == ASK_USER)
     {
@@ -117,7 +120,7 @@ int isFileExist(const char* name, const UniHdr& hdr, Action& action)
       char source[50];
 
       SYSTEMTIME st = makeDate(hdr);
-      wsprintf(source, getMsg(MSrc),
+      sprintf(source, getMsg(MSrc),
                getSize(hdr),
                st.wDay, st.wMonth, st.wYear,
                st.wHour, st.wMinute, st.wSecond);
@@ -128,8 +131,8 @@ int isFileExist(const char* name, const UniHdr& hdr, Action& action)
       SYSTEMTIME time;
       FileTimeToSystemTime(&lastWriteTime, &time);
                      
-      wsprintf(dest, getMsg(MDest),
-               data.nFileSizeLow,
+      sprintf(dest, getMsg(MDest),
+               data.nFileSize,
                time.wDay, time.wMonth, time.wYear,
                time.wHour, time.wMinute, time.wSecond);
       
@@ -164,7 +167,7 @@ int Manager::getOneFile(UniHdr&       h,
                         int           opMode)
 {
   char name[8+3+2];
-  makeName(h, name);
+  makeName(h, (const u8*)name);
 
   char fullToName[300];
   makeFullName(fullToName, to_path, name);
@@ -176,7 +179,7 @@ int Manager::getOneFile(UniHdr&       h,
   if(isDir(h))
   {
     addEndSlash(fullToName);
-    CreateDirectory(fullToName, NULL);
+    CreateDirectory(_W(fullToName).c_str(), NULL);
 
     addEndSlash(fullFromName);
 
@@ -251,9 +254,9 @@ int Manager::getFiles(PluginPanelItem *panelItem,
   button[1] = getMsg(MMoveButton);
   
   if(noItems == 1)
-    wsprintf(msg, getMsg(MFileTo), move ? actTo[1] : actTo[0], panelItem[0].FindData.cFileName);
+    sprintf(msg, getMsg(MFileTo), move ? actTo[1] : actTo[0], panelItem[0].FindData.cFileName);
   else
-    wsprintf(msg, getMsg(MFilesTo), move ? actTo[1] : actTo[0], noItems);
+    sprintf(msg, getMsg(MFilesTo), move ? actTo[1] : actTo[0], noItems);
   
   char historyName[] = "XiSD_copy_path";
   
@@ -261,7 +264,7 @@ int Manager::getFiles(PluginPanelItem *panelItem,
   {
     DI_DOUBLEBOX,3,1,72,6,0,0,0,0, move ? act[1] : act[0],
     DI_TEXT,     5,2,0,0,0,0,0,0,msg,
-    DI_EDIT,     5,3,70,3,1,(int)historyName,DIF_HISTORY,0,destPath,
+    DI_EDIT,     5,3,70,3,1,(DWORD_PTR)historyName,DIF_HISTORY,0,destPath,
     DI_TEXT,     3,4,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,"",
     DI_BUTTON,   0,5,0,0,0,0,DIF_CENTERGROUP,1, move ? button[1] : button[0],
     DI_BUTTON,   0,5,0,0,0,0,DIF_CENTERGROUP,0,(char *)MCancel
@@ -270,7 +273,7 @@ int Manager::getFiles(PluginPanelItem *panelItem,
   FarDialogItem dialogItems[sizeof(items)/sizeof(items[0])];
   initDialogItems(items, dialogItems, sizeof(items)/sizeof(items[0]));
   
-  // •·´® ≠†§Æ ØÆ™†ß†‚Ï §®†´Æ£, ‚Æ ØÆ™†¶•¨
+  // –µ—Å–ª–∏ –Ω–∞–¥–æ –ø–æ–∫–∞–∑–∞—Ç—å –¥–∏–∞–ª–æ–≥, —Ç–æ –ø–æ–∫–∞–∂–µ–º
   if((opMode & OPM_SILENT) == 0)
   {
     int askCode = startupInfo.Dialog(startupInfo.ModuleNumber,
@@ -279,11 +282,11 @@ int Manager::getFiles(PluginPanelItem *panelItem,
                                      dialogItems,
                                      sizeof(dialogItems)/sizeof(dialogItems[0]));
     if(askCode != 4) return -1;
-    lstrcpy(destPath, dialogItems[2].Data);
+    strcpy(destPath, dialogItems[2].Data);
   }
   
-  // •·´® ØÆ´ÏßÆ¢†‚•´Ï ÂÆÁ•‚, ‚Æ ·Æß§†§®¨ ™†‚†´Æ£®
-  if(GetFileAttributes(destPath)==0xFFFFFFFF)
+  // –µ—Å–ª–∏ –ø–æ–ª—å–∑–æ–≤–∞—Ç–µ–ª—å —Ö–æ—á–µ—Ç, —Ç–æ —Å–æ–∑–¥–∞–¥–∏–º –∫–∞—Ç–∞–ª–æ–≥–∏
+  if(GetFileAttributes(_W(destPath).c_str())==0xFFFFFFFF)
     for(char *c=destPath; *c; c++)
     {
       if(*c!=' ')
@@ -292,14 +295,14 @@ int Manager::getFiles(PluginPanelItem *panelItem,
           if(*c=='\\')
           {
             *c=0;
-            CreateDirectory(destPath, NULL);
+            CreateDirectory(_W(destPath).c_str(), NULL);
             *c='\\';
           }
-        CreateDirectory(destPath, NULL);
+        CreateDirectory(_W(destPath).c_str(), NULL);
         break;
       }
     }
-  if(*destPath && destPath[lstrlen(destPath)-1] != ':') addEndSlash(destPath);
+  if(*destPath && destPath[strlen(destPath)-1] != ':') addEndSlash(destPath);
   
   if(!openHostFile()) return 0;
   HANDLE screen = startupInfo.SaveScreen(0, 0, -1, -1);

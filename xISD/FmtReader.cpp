@@ -2,57 +2,34 @@
 #include "fmtReader.hpp"
 #include "tools.hpp"
 
+#include "Formats/IMG/img.hpp"
+#include "Formats/FDI/fdifmt.hpp"
+
 FmtReader::FmtReader(char *path)
 {
-  noPlugins = 0;
-  char pluginPath[300];
-  char pluginMask[300];
-  
-  lstrcpy(pluginPath, path);
-  lstrcpy(pointToName(pluginPath), "Formats\\");
-  
-  lstrcpy(pluginMask, pluginPath);
-  lstrcat(pluginMask, "*.fmt");
+  plugins[noPlugins].handle         = (HMODULE)noPlugins;
+  plugins[noPlugins].isImage        = img_isImage;
+  plugins[noPlugins].openSubPlugin  = img_openSubPlugin;
+  plugins[noPlugins].closeSubPlugin = img_closeSubPlugin;
+  plugins[noPlugins].reload         = img_reload;
+  plugins[noPlugins].openFile       = img_openFile;
+  plugins[noPlugins].closeFile      = img_closeFile;
+  plugins[noPlugins].read           = img_read;
+  plugins[noPlugins].write          = img_write;
+  plugins[noPlugins].getFormatName  = img_getFormatName;
+  noPlugins++;
 
-  WIN32_FIND_DATA data;
-  HANDLE foundFile = FindFirstFile(pluginMask, &data);
-  
-  int done = (foundFile == INVALID_HANDLE_VALUE);
-  while(!done)
-  {
-    char pluginName[300];
-    lstrcpy(pluginName, pluginPath);
-    lstrcat(pluginName, data.cFileName);
-
-    HINSTANCE hPlugin = LoadLibrary(pluginName);
-    if(hPlugin != NULL)
-    {
-      plugins[noPlugins].handle         = hPlugin;
-      plugins[noPlugins].isImage        = (IS_IMAGE)         GetProcAddress(hPlugin,"isImage");
-      plugins[noPlugins].openSubPlugin  = (OPEN_SUB_PLUGIN)  GetProcAddress(hPlugin,"openSubPlugin");
-      plugins[noPlugins].closeSubPlugin = (CLOSE_SUB_PLUGIN) GetProcAddress(hPlugin,"closeSubPlugin");
-      plugins[noPlugins].reload         = (RELOAD)           GetProcAddress(hPlugin,"reload");
-      plugins[noPlugins].openFile       = (OPEN_FILE)        GetProcAddress(hPlugin,"openFile");
-      plugins[noPlugins].closeFile      = (CLOSE_FILE)       GetProcAddress(hPlugin,"closeFile");
-      plugins[noPlugins].read           = (READ)             GetProcAddress(hPlugin,"read");
-      plugins[noPlugins].write          = (WRITE)            GetProcAddress(hPlugin,"write");
-      plugins[noPlugins].getFormatName  = (GET_FORMAT_NAME)  GetProcAddress(hPlugin,"getFormatName");
-
-      if(plugins[noPlugins].isImage        != NULL &&
-         plugins[noPlugins].openSubPlugin  != NULL &&
-         plugins[noPlugins].closeSubPlugin != NULL &&
-         plugins[noPlugins].reload         != NULL &&
-         plugins[noPlugins].openFile       != NULL &&
-         plugins[noPlugins].closeFile      != NULL &&
-         plugins[noPlugins].read           != NULL &&
-         plugins[noPlugins].write          != NULL &&
-         plugins[noPlugins].getFormatName  != NULL) ++noPlugins;
-      
-      if(noPlugins == 16) break;
-    }
-    done = !FindNextFile(foundFile, &data);
-  }
-  FindClose(foundFile);
+  plugins[noPlugins].handle         = (HMODULE)noPlugins;
+  plugins[noPlugins].isImage        = fdi_isImage;
+  plugins[noPlugins].openSubPlugin  = fdi_openSubPlugin;
+  plugins[noPlugins].closeSubPlugin = fdi_closeSubPlugin;
+  plugins[noPlugins].reload         = fdi_reload;
+  plugins[noPlugins].openFile       = fdi_openFile;
+  plugins[noPlugins].closeFile      = fdi_closeFile;
+  plugins[noPlugins].read           = fdi_read;
+  plugins[noPlugins].write          = fdi_write;
+  plugins[noPlugins].getFormatName  = fdi_getFormatName;
+  noPlugins++;
 }
 
 FmtPlugin* FmtReader::isImage(char *fileName, const unsigned char *data, int size)

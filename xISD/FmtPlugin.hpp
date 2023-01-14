@@ -1,7 +1,6 @@
 #ifndef FmtPlugin_hpp
 #define FmtPlugin_hpp
 #include <windows.h>
-#include "plugin.hpp"
 
 typedef bool   (WINAPI *IS_IMAGE)         (char *name, const unsigned char* data, int size);
 typedef HANDLE (WINAPI *OPEN_SUB_PLUGIN)  (char* fileName);

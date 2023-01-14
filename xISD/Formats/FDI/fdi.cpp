@@ -1,12 +1,14 @@
-#include "..\fmt.hpp"
 #include "filer.hpp"
 #include "fdi.hpp"
 
-bool WINAPI _export isImage(char* fileName, const BYTE* data, int size)
+#include <windows.h>
+#include "../../../shared/widestring.hpp"
+
+bool WINAPI _export fdi_isImage(char* fileName, const BYTE* data, int size)
 {
   if(data[0] != 'F' || data[1] != 'D' || data[2] != 'I') return false;
 
-  HANDLE hostFile = CreateFile(fileName,
+  HANDLE hostFile = CreateFile(_WW(fileName),
                                GENERIC_READ,
                                FILE_SHARE_READ | FILE_SHARE_WRITE,
                                NULL,
@@ -48,43 +50,43 @@ bool WINAPI _export isImage(char* fileName, const BYTE* data, int size)
   return true;
 }
 
-HANDLE WINAPI _export openSubPlugin(char* fileName)
+HANDLE WINAPI _export fdi_openSubPlugin(char* fileName)
 {
   return (HANDLE)(new Filer(fileName));
 }
 
-void WINAPI _export closeSubPlugin(HANDLE h)
+void WINAPI _export fdi_closeSubPlugin(HANDLE h)
 {
   delete (Filer*)h;
 }
 
-bool WINAPI _export reload (HANDLE h) { return true; }
+bool WINAPI _export fdi_reload (HANDLE h) { return true; }
 
-bool WINAPI _export openFile(HANDLE h)
+bool WINAPI _export fdi_openFile(HANDLE h)
 {
   Filer* f = (Filer*)h;
   return f->openFile();
 }
 
-bool WINAPI _export closeFile(HANDLE h)
+bool WINAPI _export fdi_closeFile(HANDLE h)
 {
   Filer* f = (Filer*)h;
   return f->closeFile();
 }
 
-bool WINAPI _export read(HANDLE h, WORD blockNum, BYTE* buf)
+bool WINAPI _export fdi_read(HANDLE h, WORD blockNum, BYTE* buf)
 {
   Filer* f = (Filer*)h;
   return f->read(blockNum, buf);
 }
 
-bool WINAPI _export write(HANDLE h, WORD blockNum, BYTE* buf)
+bool WINAPI _export fdi_write(HANDLE h, WORD blockNum, BYTE* buf)
 {
   Filer* f = (Filer*)h;
   return f->write(blockNum, buf);
 }
 
-char* WINAPI _export getFormatName (void)
+char* WINAPI _export fdi_getFormatName(void)
 {
   static char* name = "FDI";
   return name;

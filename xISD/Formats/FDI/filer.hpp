@@ -1,6 +1,8 @@
 #ifndef filer_hpp
 #define filer_hpp
 
+#include <windows.h>
+
 class Filer
 {
   public:

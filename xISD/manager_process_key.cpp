@@ -1,11 +1,12 @@
 #include <windows.h>
 
 #include "manager.hpp"
-#include "memory.hpp"
 #include "tools.hpp"
 #include "iSDOS.hpp"
 #include "iSDOS_tools.hpp"
 #include "lang.hpp"
+
+#include "../shared/widestring.hpp"
 
 extern PluginStartupInfo startupInfo;
 
@@ -36,10 +37,10 @@ int Manager::processKey(int key, unsigned int controlState)
     startupInfo.Control(this,FCTL_GETPANELINFO,&info);
     char *fName = info.PanelItems[info.CurrentItem].FindData.cFileName;
     int fNum = findFile(files, fName);
-    if (compareMemoryIgnoreCase(files[fNum].ext,"com",3)) return TRUE;
-    if (compareMemoryIgnoreCase(files[fNum].ext,"bat",3)) return TRUE;
-    if (compareMemoryIgnoreCase(files[fNum].ext,"exe",3)) return TRUE;
-    if (compareMemoryIgnoreCase(files[fNum].ext,"cmd",3)) return TRUE;
+    if (strncmp((char*)files[fNum].ext, "com", 3) == 0) return TRUE;
+    if (strncmp((char*)files[fNum].ext, "bat", 3) == 0) return TRUE;
+    if (strncmp((char*)files[fNum].ext, "exe", 3) == 0) return TRUE;
+    if (strncmp((char*)files[fNum].ext, "cmd", 3) == 0) return TRUE;
   }
 
   if((controlState & PKF_CONTROL) && key == 0x41)
@@ -56,14 +57,14 @@ int Manager::processKey(int key, unsigned int controlState)
       if(!fNum) return TRUE;
 
       char name[8+3+2] = "";
-      makeName(files[fNum], name);
+      makeName(files[fNum], (const u8*)name);
 
       int days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
       char day[3], month[3], year[5];
       SYSTEMTIME st = makeDate(files[fNum]);
-      wsprintf(day,  "%02d",st.wDay);
-      wsprintf(month,"%02d",st.wMonth);
-      wsprintf(year, "%04d",st.wYear);
+      sprintf(day,  "%02d",st.wDay);
+      sprintf(month,"%02d",st.wMonth);
+      sprintf(year, "%04d",st.wYear);
 
       if (isDir(files[fNum]))
       {
@@ -130,10 +131,10 @@ int Manager::processKey(int key, unsigned int controlState)
       else
       {
         char stAdr[6], hour[3], minute[3], second[3];
-        wsprintf(hour,  "%02d",st.wHour);
-        wsprintf(minute,"%02d",st.wMinute);
-        wsprintf(second,"%02d",st.wSecond);
-        wsprintf(stAdr,"%d",files[fNum].file.loadAddr);
+        sprintf(hour,  "%02d",st.wHour);
+        sprintf(minute,"%02d",st.wMinute);
+        sprintf(second,"%02d",st.wSecond);
+        sprintf(stAdr,"%d",files[fNum].file.loadAddr);
 
         InitDialogItem items[]=
         {
@@ -245,10 +246,10 @@ int Manager::processKey(int key, unsigned int controlState)
       if(!fNum) return TRUE;
 
       char name[8+3+2] = "";
-      makeName(files[fNum], name);
+      makeName(files[fNum], (const u8*)name);
 
       char buf[100];
-      wsprintf(buf, getMsg(MRenameTo), name);
+      sprintf(buf, getMsg(MRenameTo), name);
       InitDialogItem items[]=
       {
         DI_DOUBLEBOX,3,1,50,6,0,0,0,0,(char *)MRename,
@@ -281,7 +282,7 @@ int Manager::processKey(int key, unsigned int controlState)
       char *p = name;
 
       if(*p == 0) return TRUE;
-      FillMemory(&files[fNum], 8+3, ' ');
+      memset(&files[fNum], ' ', 8+3);
 
       for(int i = 0; i < 8; ++i)
       {

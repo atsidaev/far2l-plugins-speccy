@@ -1,20 +1,10 @@
 #include <windows.h>
-#include "plugin.hpp"
+#include "far2sdk/farplug-mb.h"
+using namespace oldfar;
+
 #include "tools.hpp"
 
 extern PluginStartupInfo startupInfo;
-
-bool compareMemoryIgnoreCase(u8* p1, u8* p2, u16 size)
-{
-  u8 ch1, ch2;
-  while(size--)
-  {
-    ch1 = (u8)CharUpper((char*)*p1++);
-    ch2 = (u8)CharUpper((char*)*p2++);
-    if(ch1 != ch2) return false;
-  }
-  return true;
-}
 
 char* pointToName(char* path)
 {
@@ -29,7 +19,7 @@ char* pointToName(char* path)
 
 char* pointToExt(char* path)
 {
-  int i = lstrlen(path);
+  int i = strlen(path);
   char *ptr = path + i;
   while(*ptr != '.' && i != 0) { ptr--; i--; }
   if(i)
@@ -42,17 +32,17 @@ char* pointToExt(char* path)
 void addEndSlash(char *path)
 {
   if(!path) return;
-  int length = lstrlen(path);
+  int length = strlen(path);
   if(length != 0 && path[length-1] == ':') return;
-  if(length != 0 && path[length-1] != '\\') lstrcat(path,"\\");
+  if(length != 0 && path[length-1] != '\\') strcat(path,"\\");
 }
 
 char* getMsg(int msgId)
 {
-  return(startupInfo.GetMsg(startupInfo.ModuleNumber, msgId));
+  return((char*)startupInfo.GetMsg(startupInfo.ModuleNumber, msgId));
 }
 
-void initDialogItems(InitDialogItem *init, FarDialogItem *item, int noItems)
+void initDialogItems(InitDialogItem *init, FarDialogItem* item, int noItems)
 {
   for(int i = 0; i < noItems; i++)
   {
@@ -65,10 +55,10 @@ void initDialogItems(InitDialogItem *init, FarDialogItem *item, int noItems)
     item[i].Selected      = init[i].Selected;
     item[i].Flags         = init[i].Flags;
     item[i].DefaultButton = init[i].DefaultButton;
-    if((unsigned int)init[i].Data < 2000)
-      lstrcpy(item[i].Data, getMsg((unsigned int)init[i].Data));
+    if((unsigned long)init[i].Data < 2000)
+      strcpy(item[i].Data, getMsg((unsigned long)init[i].Data));
     else
-      lstrcpy(item[i].Data, init[i].Data);
+      strcpy(item[i].Data, init[i].Data);
   }
 }
 
@@ -79,32 +69,30 @@ int messageBox(u32 flags, char **items, int noItems, int noButtons)
                               noItems, noButtons));
 }
 
-bool compareMemory(void* p1, void* p2, u16 size)
+bool compareMemory(const void* p1, const void* p2, u16 size)
 {
-  while(size--)
-    if(*((u8*)p1)++ != *((u8*)p2)++) return false;
-  return true;
+  return memcmp(p1, p2, size) == 0;
 }
 
 char* cropLongName(char* newName, const char* name, int noChars)
 {
-  int size = lstrlen(name);
+  int size = strlen(name);
   if(size > noChars)
   {
     if(name[1] == ':' && name[2] == '\\')
     {
-      lstrcpyn(newName, name, 4);
-      lstrcat(newName, "...");
-      lstrcat(newName, name+size-noChars+6);
+      strncpy(newName, name, 4);
+      strcat(newName, "...");
+      strcat(newName, name+size-noChars+6);
     }
     else
     {
-      lstrcpy(newName, "...");
-      lstrcat(newName, name+size-noChars+3);
+      strcpy(newName, "...");
+      strcat(newName, name+size-noChars+3);
     }
   }
   else
-    lstrcpy(newName, name);
+    strcpy(newName, name);
   return newName;
 }
 
@@ -121,9 +109,9 @@ bool isValidChar(char ch)
 
 char* makeFullName(char* fullName, const char* path, const char* name)
 {
-  lstrcpy(fullName, path);
+  strcpy(fullName, path);
   addEndSlash(fullName);
-  return lstrcat(fullName, name);
+  return strcat(fullName, name);
 }
 
 void makeCompatibleFileName(char* newName, char* oldName)
@@ -162,11 +150,11 @@ void makeCompatibleFileName(char* newName, char* oldName)
   *p = 0;
 }
 
-void makeCompatibleFolderName(char* newName, char* oldName)
+void makeCompatibleFolderName(char* newName, const char* oldName)
 {
   if(*oldName == 0) return;
   char* p = newName;
-  char* q = oldName;
+  const char* q = oldName;
   for(int i = 0; i < 8; ++i)
   {
     if(*q == 0 || *q == '.') break;

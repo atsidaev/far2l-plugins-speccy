@@ -9,7 +9,7 @@ class FmtReader
   FmtReader(char *path);
   FmtPlugin* isImage(char *fileName, const unsigned char *data, int size);
  private:
-  int       noPlugins;
+  int       noPlugins = 0;
   FmtPlugin plugins[16];
 };
 

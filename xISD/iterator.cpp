@@ -1,6 +1,5 @@
 #include "iterator.hpp"
 #include "iSDOS_tools.hpp"
-#include "memory.hpp"
 
 Iterator::Iterator(FmtPlugin* filer, HANDLE img, const UniHdr h)
 {

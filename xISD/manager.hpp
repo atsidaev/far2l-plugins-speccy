@@ -1,7 +1,9 @@
 #ifndef manager_hpp
 #define manager_hpp
 
-#include "plugin.hpp"
+#include "far2sdk/farplug-mb.h"
+using namespace oldfar;
+
 #include "FmtPlugin.hpp"
 #include "iSDOS.hpp"
 
@@ -69,8 +71,8 @@ class Manager
     int  makeDirectory(char *dirName, int opMode);
     
   private:
-    int putOneFile(UniHdr* pDir, WIN32_FIND_DATA& file, const char* fromDir, const char* dirName, int move, Action& action, int opMode);
-    int putOneFolder(UniHdr* pDir, WIN32_FIND_DATA& file, const char* fromDir, const char* dirName, int move, Action& action, int opMode);
+    int putOneFile(UniHdr* pDir, const WIN32_FIND_DATA& file, const char* fromDir, const char* dirName, int move, Action& action, int opMode);
+    int putOneFolder(UniHdr* pDir, const WIN32_FIND_DATA& file, const char* fromDir, const char* dirName, int move, Action& action, int opMode);
   public:
     int putFiles  (PluginPanelItem *panelItem, int noItems, int move, int opMode);
     int processKey(int key, unsigned int controlState);

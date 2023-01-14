@@ -7,7 +7,7 @@ CXXFLAGS += -DWINPORT_DIRECT -DWINPORT_REGISTRY -DUNICODE
 LD=g++
 LDFLAGS = -shared
 
-TARGETS = xCreate.far-plug-mb xSCL.far-plug-mb xTRD.far-plug-mb
+TARGETS = xCreate.far-plug-mb xSCL.far-plug-mb xTRD.far-plug-mb xISD.far-plug-mb
 RELEASE = release
 
 SHARED_BASIC_OBJS = shared/registry.o shared/widestring.o
@@ -27,12 +27,21 @@ XTRD_OBJS = xTRD/xTRD.o xTRD/manager.o xTRD/detector.o xTRD/FmtReader.o xTRD/too
 XSCL_OBJS = xSCL/xSCL.o xSCL/manager_del.o xSCL/manager_get.o xSCL/manager_key.o xSCL/manager_put.o \
             xSCL/manager_tools.o xSCL/manager.o xSCL/tools.o xSCL/detector.o
 
+XISD_OBJS = xISD/XiSD.o xISD/manager.o xISD/FmtReader.o xISD/tools.o xISD/iSDOS_tools.o \
+            xISD/manager_tools.o xISD/manager_delete_files.o xISD/manager_get_files.o \
+            xISD/manager_put_files.o xISD/manager_process_key.o \
+            xISD/manager_make_folder.o xISD/iterator.o \
+            xISD/Formats/IMG/img.o xISD/Formats/FDI/fdi.o
+
 all: $(TARGETS)
 
 release: all
 	mkdir -p $(RELEASE)
 	(cd $(RELEASE) && mkdir -p $(TARGETS:%.far-plug-mb=%/plug))
 	for d in $(TARGETS:%.far-plug-mb=%); do cp $$d/res/* $(RELEASE)/$$d/plug; mv $$d.far-plug-mb $(RELEASE)/$$d/plug; done
+
+install: release
+	sudo cp -r release/* /usr/lib/far2l/Plugins/
 
 # TODO: use template
 
@@ -45,6 +54,9 @@ xSCL.far-plug-mb: $(SHARED_OBJS) $(XSCL_OBJS)
 xTRD.far-plug-mb: $(SHARED_OBJS) $(XTRD_OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
+xISD.far-plug-mb: $(SHARED_OBJS) $(XISD_OBJS)
+	$(LD) $(LDFLAGS) $^ -o $@
+
 clean:
-	rm $(SHARED_OBJS) $(XCREATE_OBJS) $(XSCL_OBJS) $(XTRD_OBJS) $(TARGETS) || true
+	rm $(SHARED_OBJS) $(XCREATE_OBJS) $(XSCL_OBJS) $(XTRD_OBJS) $(XISD_OBJS) $(TARGETS) || true
 	rm -rf $(RELEASE) || true

@@ -1,4 +1,6 @@
 #include <windows.h>
+#include "far2sdk/farplug-mb.h"
+using namespace oldfar;
 
 #include "manager.hpp"
 #include "tools.hpp"
@@ -7,13 +9,15 @@
 #include "iterator.hpp"
 #include "lang.hpp"
 
+#include "../shared/widestring.hpp"
+
 extern PluginStartupInfo startupInfo;
 extern Options           op;
 
-int Manager::putOneFolder(UniHdr* pDir, WIN32_FIND_DATA& file, const char* fromDir, const char* dirName, int move, Action& action, int opMode)
+int Manager::putOneFolder(UniHdr* pDir, const WIN32_FIND_DATA& file, const char* fromDir, const char* dirName, int move, Action& action, int opMode)
 {
   char cname[8+3+2] = "";
-  makeCompatibleFolderName(cname, file.cFileName);
+  makeCompatibleFolderName(cname, _NN(file.cFileName));
   
   int fNum  = findFile(pDir, cname);
   if(!fNum)
@@ -26,23 +30,23 @@ int Manager::putOneFolder(UniHdr* pDir, WIN32_FIND_DATA& file, const char* fromD
   readFolder(pDir[fNum], curDir);
 
   char fullName[300];
-  makeFullName(fullName, dirName, file.cFileName);
+  makeFullName(fullName, dirName, _NN(file.cFileName));
   
   char fullFromName[300];
-  makeFullName(fullFromName, fromDir, file.cFileName);
+  makeFullName(fullFromName, fromDir, _NN(file.cFileName));
 
   char mask[300];
   makeFullName(mask, fullFromName, "*.*");
   
   WIN32_FIND_DATA data;
-  HANDLE h = FindFirstFile(mask, &data);
+  HANDLE h = FindFirstFile(_WW(mask), &data);
   if(h == INVALID_HANDLE_VALUE) return 1;
   int exitCode = 1;
   do
   {
     int result;
-    if(!lstrcmp(data.cFileName, ".")) continue;
-    if(!lstrcmp(data.cFileName, "..")) continue;
+    if(!lstrcmp(data.cFileName, L".")) continue;
+    if(!lstrcmp(data.cFileName, L"..")) continue;
     if(!reserveSpaceForFiles(curDir, 1))
     {
       exitCode = -1;
@@ -64,14 +68,13 @@ int Manager::putOneFolder(UniHdr* pDir, WIN32_FIND_DATA& file, const char* fromD
   FindClose(h);
   writeFolder(curDir);
   if(move && exitCode == 1)
-    if(!RemoveDirectory(fullFromName)) return 0;
+    if(!RemoveDirectory(_WW(fullFromName))) return 0;
   return exitCode;
 }
 
-int Manager::putOneFile(UniHdr* pDir, WIN32_FIND_DATA& file, const char* fromDir, const char* dirName, int move, Action& action, int opMode)
+int Manager::putOneFile(UniHdr* pDir, const WIN32_FIND_DATA& file, const char* fromDir, const char* dirName, int move, Action& action, int opMode)
 {
-
-  u16 needBlocks = file.nFileSizeLow/blockSize + (file.nFileSizeLow%blockSize ? 1 : 0);
+  u16 needBlocks = file.nFileSize / blockSize + (file.nFileSize % blockSize ? 1 : 0);
   int firstFoundBlock = findFreeBlocks(needBlocks);
   
   if(firstFoundBlock == -1)
@@ -84,20 +87,20 @@ int Manager::putOneFile(UniHdr* pDir, WIN32_FIND_DATA& file, const char* fromDir
     return -1;
   }
   char cname[8+3+2] = "";
-  makeCompatibleFileName(cname, file.cFileName);
+  makeCompatibleFileName(cname, _NN(file.cFileName));
   
   int fNum = findFile(pDir, cname);
   if(fNum)
   {
-    // 䠩� ��� ��⠫�� � ⠪�� ������ 㦥 �������
-    if(isDir(pDir[fNum]))  return 0; // �� ��⠫��
+    // файл или каталог с таким именем уже существует
+    if(isDir(pDir[fNum]))  return 0; // это каталог
     if(pDir[fNum].attr == 0xFF && pDir[fNum].file.systemFlag == 0xFF) return 0;
     
     if(action == SKIP_ALL) return 0;
     if(action == ASK_USER)
     {
       char fullName[300];
-      makeFullName(fullName, dirName, file.cFileName);
+      makeFullName(fullName, dirName, _NN(file.cFileName));
       
       char *msgItems[12];
       msgItems[0] = getMsg(MWarning);
@@ -122,13 +125,13 @@ int Manager::putOneFile(UniHdr* pDir, WIN32_FIND_DATA& file, const char* fromDir
       SYSTEMTIME time;
       FileTimeToSystemTime(&lastWriteTime, &time);
       
-      wsprintf(source, getMsg(MSrc),
-               file.nFileSizeLow,
+      sprintf(source, getMsg(MSrc),
+               file.nFileSize,
                time.wDay, time.wMonth, time.wYear,
                time.wHour, time.wMinute, time.wSecond);
       
       SYSTEMTIME st = makeDate(pDir[fNum]);
-      wsprintf(dest, getMsg(MDest),
+      sprintf(dest, getMsg(MDest),
                getSize(pDir[fNum]),
                st.wDay, st.wMonth, st.wYear,
                st.wHour, st.wMinute, st.wSecond);
@@ -151,14 +154,14 @@ int Manager::putOneFile(UniHdr* pDir, WIN32_FIND_DATA& file, const char* fromDir
                   action = DO_ALL;
       }
     }
-    // 㤠�塞 䠩�
+    // удаляем файл
     Action actProtected = DO_ALL;
     Action actFolder    = DO_ALL;
     deleteOneFile(pDir[fNum], pDir, dirName, OPM_SILENT, actProtected, actFolder);
   }
 
   char fullName[300];
-  makeFullName(fullName, fromDir, file.cFileName);
+  makeFullName(fullName, fromDir, _NN(file.cFileName));
   if(!(opMode & OPM_SILENT))
   {
     char *msgItems[3];
@@ -178,7 +181,7 @@ int Manager::putOneFile(UniHdr* pDir, WIN32_FIND_DATA& file, const char* fromDir
     messageBox(0, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 0);
   }
   
-  HANDLE hFile = CreateFile(fullName,
+  HANDLE hFile = CreateFile(_WW(fullName),
                             GENERIC_READ,
                             FILE_SHARE_READ | FILE_SHARE_WRITE,
                             NULL,
@@ -191,16 +194,15 @@ int Manager::putOneFile(UniHdr* pDir, WIN32_FIND_DATA& file, const char* fromDir
     char *msgItems[4];
     msgItems[0] = getMsg(MError);
     msgItems[1] = getMsg(MCanNotOpen);
-    msgItems[2] = file.cFileName;
+    msgItems[2] = (char*)_NN(file.cFileName);
     msgItems[3] = getMsg(MOk);
     messageBox(FMSG_WARNING, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 1);
     return 0;
   }
 
   UniHdr newFile;
-  ZeroMemory(&newFile, sizeof(newFile));
-
-  FillMemory(&newFile, 8+3, ' ');
+  memset(&newFile, 0, sizeof(newFile));
+  memset(&newFile, ' ', 8+3);
   char *p = cname;
   if(*p == 0) return 0;
   for(int i = 0; i < 8; ++i)
@@ -224,7 +226,7 @@ int Manager::putOneFile(UniHdr* pDir, WIN32_FIND_DATA& file, const char* fromDir
   
   newFile.attr            = 0x43;
   newFile.file.firstBlock = firstFoundBlock;
-  setFileSize(newFile, file.nFileSizeLow);
+  setFileSize(newFile, file.nFileSize);
 
   SYSTEMTIME time;
   FILETIME lastWriteTime;
@@ -248,8 +250,8 @@ int Manager::putOneFile(UniHdr* pDir, WIN32_FIND_DATA& file, const char* fromDir
   u16 checkSum = 0;
   while(needBlocks--)
   {
-    u32 noBytesRead;
-    ZeroMemory(buf, blockSize);
+    DWORD noBytesRead;
+    memset(buf, 0, blockSize);
     ReadFile(hFile, buf, blockSize, &noBytesRead, NULL);
     writeBlock(firstFoundBlock, buf);
     markBlock(firstFoundBlock++);
@@ -262,14 +264,28 @@ int Manager::putOneFile(UniHdr* pDir, WIN32_FIND_DATA& file, const char* fromDir
   for(; fNum < pDir[0].dir.totalFiles; ++fNum)
     if(!(pDir[fNum].attr & FLAG_EXIST)) break;
   
-  CopyMemory(&pDir[fNum], &newFile, sizeof(UniHdr));
+  memcpy(&pDir[fNum], &newFile, sizeof(UniHdr));
   if(fNum == pDir[0].dir.totalFiles) ++pDir[0].dir.totalFiles;
   ++pDir[0].dir.noFiles;
 
   CloseHandle(hFile);
   if(move)
-    if(!DeleteFile(fullName)) return 0;
+    if(!DeleteFile(_WW(fullName))) return 0;
   return 1;
+}
+
+const WIN32_FIND_DATA& to_win32_find_data(FAR_FIND_DATA data)
+{
+  WIN32_FIND_DATA result;
+  lstrcpy(result.cFileName, _WW(data.cFileName));
+  result.dwFileAttributes = data.dwFileAttributes;
+  result.ftCreationTime = data.ftCreationTime;
+  result.ftLastAccessTime = data.ftLastAccessTime;
+  result.ftLastWriteTime = data.ftLastWriteTime;
+  result.nFileSize = data.nFileSize;
+  result.nPhysicalSize = data.nPhysicalSize;
+
+  return result;
 }
 
 int Manager::putFiles(PluginPanelItem *panelItem, int noItems, int move, int opMode)
@@ -305,9 +321,9 @@ int Manager::putFiles(PluginPanelItem *panelItem, int noItems, int move, int opM
   {
     int result;
     if(panelItem[iNum].FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-      result = putOneFolder(files, panelItem[iNum].FindData, "", curDir, move, action, opMode);
+      result = putOneFolder(files, to_win32_find_data(panelItem[iNum].FindData), "", curDir, move, action, opMode);
     else
-      result = putOneFile(files, panelItem[iNum].FindData, "", curDir, move, action, opMode);
+      result = putOneFile(files, to_win32_find_data(panelItem[iNum].FindData), "", curDir, move, action, opMode);
     
     if(result == -1)
     {

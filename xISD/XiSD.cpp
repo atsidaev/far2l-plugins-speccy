@@ -1,10 +1,12 @@
+#include <windows.h>
+
 #include "XiSD.hpp"
-#include "memory.hpp"
 #include "manager.hpp"
 #include "FmtReader.hpp"
 #include "tools.hpp"
 #include "registry.hpp"
 #include "lang.hpp"
+#include "../shared/widestring.hpp"
 
 void* operator new   (size_t size) { return malloc(size); }
 void  operator delete(void *block) { free(block); }
@@ -16,20 +18,20 @@ Options           op;
 
 void WINAPI _export SetStartupInfo(PluginStartupInfo *info)
 {
-  // ¯®«ãç¨«¨ á¢®î ª®¯¨î PluginStartupInfo
+  // Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ð»Ð¸ ÑÐ²Ð¾ÑŽ ÐºÐ¾Ð¿Ð¸ÑŽ PluginStartupInfo
   startupInfo = *info;
   fmtReader = new FmtReader(startupInfo.ModuleName);
 
-  reg = new Registry(startupInfo.RootKey);
-  op.defaultPanelMode = reg->getNumber(HKEY_CURRENT_USER, "DefaultPanelMode", 4);
+  reg = new Registry((char*)startupInfo.RootKey, L"/ZX/xISD/");
+  op.defaultPanelMode = reg->getNumber(HKEY_CURRENT_USER, L"DefaultPanelMode", 4);
   op.reread = false;
 
   char columnTypes [] = "N,S,C0,C1,C2";
   char columnWidths[] = "0,8,4,5,5";
   char *columnTitles = getMsg(MTitle);
-  reg->getString(HKEY_CURRENT_USER, "ColumnTypes",  op.columnTypes,  columnTypes,  100);
-  reg->getString(HKEY_CURRENT_USER, "ColumnWidths", op.columnWidths, columnWidths, 100);
-  reg->getString(HKEY_CURRENT_USER, "ColumnTitles", op.columnTitles, columnTitles, 100);
+  reg->getString(HKEY_CURRENT_USER, L"ColumnTypes",  op.columnTypes,  columnTypes,  100);
+  reg->getString(HKEY_CURRENT_USER, L"ColumnWidths", op.columnWidths, columnWidths, 100);
+  reg->getString(HKEY_CURRENT_USER, L"ColumnTitles", op.columnTitles, columnTitles, 100);
 }
 
 void WINAPI _export ExitFAR()
@@ -53,8 +55,10 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom, int Item)
 {
   if(OpenFrom != OPEN_COMMANDLINE) return INVALID_HANDLE_VALUE;
   char *fileName = (char*)Item;
-  
-  HANDLE hostFile = CreateFile(fileName,
+
+  auto wideFileName = _W(fileName);
+
+  HANDLE hostFile = CreateFile(wideFileName.c_str(),
                                GENERIC_READ,
                                FILE_SHARE_READ | FILE_SHARE_WRITE,
                                NULL,
@@ -177,14 +181,14 @@ int WINAPI _export Configure(int itemNum)
   if(mode < 0 || mode > 9) mode = 4;
   op.defaultPanelMode = mode;
 
-  lstrcpy(op.columnTypes,  dlgItems[6].Data);
-  lstrcpy(op.columnWidths, dlgItems[8].Data);
-  lstrcpy(op.columnTitles, dlgItems[10].Data);
+  strcpy(op.columnTypes,  dlgItems[6].Data);
+  strcpy(op.columnWidths, dlgItems[8].Data);
+  strcpy(op.columnTitles, dlgItems[10].Data);
   
-  reg->setNumber(HKEY_CURRENT_USER, "DefaultPanelMode", op.defaultPanelMode);
-  reg->setString(HKEY_CURRENT_USER, "ColumnTypes",      op.columnTypes);
-  reg->setString(HKEY_CURRENT_USER, "ColumnWidths",     op.columnWidths);
-  reg->setString(HKEY_CURRENT_USER, "ColumnTitles",     op.columnTitles);
+  reg->setNumber(HKEY_CURRENT_USER, L"DefaultPanelMode", op.defaultPanelMode);
+  reg->setString(HKEY_CURRENT_USER, L"ColumnTypes",      op.columnTypes);
+  reg->setString(HKEY_CURRENT_USER, L"ColumnWidths",     op.columnWidths);
+  reg->setString(HKEY_CURRENT_USER, L"ColumnTitles",     op.columnTitles);
 
   return TRUE;
 }

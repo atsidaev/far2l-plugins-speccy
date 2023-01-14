@@ -1,4 +1,6 @@
 #include <windows.h>
+#include "far2sdk/farplug-mb.h"
+using namespace oldfar;
 
 #include "manager.hpp"
 #include "tools.hpp"
@@ -7,13 +9,17 @@
 #include "iterator.hpp"
 #include "lang.hpp"
 
+#include "types.hpp"
+
+#include "../shared/widestring.hpp"
+
 extern PluginStartupInfo startupInfo;
 extern Options           op;
 
 int Manager::deleteOneFile(UniHdr& h, UniHdr* pDir, const char* dirName, int opMode, Action& actProtected, Action& actFolder)
 {
   char name[8+3+2];
-  makeName(h, name);
+  makeName(h, (const u8*)name);
 
   char fullName[300];
   makeFullName(fullName, dirName, name);
@@ -149,9 +155,9 @@ int Manager::deleteFiles(PluginPanelItem *panelItem, int noItems, int opMode)
 
     char msg[30];
     if(noItems == 1)
-      wsprintf(msg, "%s", panelItem[0].FindData.cFileName);
+      sprintf(msg, "%s", panelItem[0].FindData.cFileName);
     else
-      wsprintf(msg, getMsg(MDelFiles), noItems);
+      sprintf(msg, getMsg(MDelFiles), noItems);
 
     msgItems[2] = msg;
     if(messageBox(0, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 2)!=0) return FALSE;
@@ -164,7 +170,7 @@ int Manager::deleteFiles(PluginPanelItem *panelItem, int noItems, int opMode)
       msgItems[4] = getMsg(MCancel);
 
       char msg[30];
-      wsprintf(msg, getMsg(MDelFiles), noItems);
+      sprintf(msg, getMsg(MDelFiles), noItems);
       msgItems[2] = msg;
       if(messageBox(FMSG_WARNING, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 2)!=0)
         return FALSE;

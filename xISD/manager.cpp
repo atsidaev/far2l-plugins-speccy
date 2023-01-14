@@ -1,31 +1,35 @@
 #include <windows.h>
+#include "far2sdk/farplug-mb.h"
+using namespace oldfar;
 
 #include "manager.hpp"
-#include "memory.hpp"
 #include "tools.hpp"
 #include "iSDOS.hpp"
 #include "iSDOS_tools.hpp"
 #include "lang.hpp"
+
+#include <string>
+#include "widestring.hpp"
 
 extern PluginStartupInfo startupInfo;
 extern Options           op;
 
 Manager::Manager(char* fileName, FmtPlugin* fmtPlugin)
 {
-  lstrcpy(hostFileName, fileName);
+  strcpy(hostFileName, fileName);
   filer = fmtPlugin;
   img = filer->openSubPlugin(fileName);
   *curDir    = 0;
-  ZeroMemory(&lastModifed, sizeof(WIN32_FIND_DATA));
+  memset(&lastModifed, 0, sizeof(WIN32_FIND_DATA));
 
   filer->reload(img);
   openHostFile();
-  // �⠥� ���ଠ�� � ��᪥
+  // читаем информацию о диске
   u8 buf[blockSize];
   readBlock(0, buf);
-  CopyMemory(&dsk, buf, sizeof(DiskHdr));
+  memcpy(&dsk, buf, sizeof(DiskHdr));
 
-  // �⠥� ������ ��⠫��
+  // читаем главный каталог
   readFolder(dsk.mainDir1stBlock, files);
 
   for(int fNum = 1; fNum < files[0].dir.totalFiles; ++fNum)
@@ -34,7 +38,7 @@ Manager::Manager(char* fileName, FmtPlugin* fmtPlugin)
     {
       if(compareMemory(files[fNum].name, "device  sys", 11))
       {
-        CopyMemory(&device_sys_hdr, &files[fNum], sizeof(UniHdr));
+        memcpy(&device_sys_hdr, &files[fNum], sizeof(UniHdr));
         u32 size = getSize(device_sys_hdr);
         
         int noBlocks = size/blockSize + ((size%blockSize) ? 1 : 0);
@@ -65,10 +69,10 @@ void Manager::getOpenPluginInfo(OpenPluginInfo *info)
   static char panelTitle[300];
 
   *panelTitle = 0;
-  lstrcat(panelTitle, " iS-DOS:");
-  lstrcat(panelTitle, pointToName(hostFileName));
-  lstrcat(panelTitle, curDir);
-  lstrcat(panelTitle, " ");
+  strcat(panelTitle, " iS-DOS:");
+  strcat(panelTitle, pointToName(hostFileName));
+  strcat(panelTitle, curDir);
+  strcat(panelTitle, " ");
   info->PanelTitle = panelTitle;
 
   static PanelMode mode[5];
@@ -112,28 +116,28 @@ void Manager::getOpenPluginInfo(OpenPluginInfo *info)
     if(dsk.signatureChic[0] == 'D' && dsk.signatureChic[1] == 'S' && dsk.signatureChic[2] == 'K')
     {
       noChars = 11;
-      lstrcpy(infoLines[0].Text, getMsg(MChic));
+      strcpy(infoLines[0].Text, getMsg(MChic));
     }
     else
     {
       noChars = 8;
-      lstrcpy(infoLines[0].Text, getMsg(MClassic));
+      strcpy(infoLines[0].Text, getMsg(MClassic));
     }
     infoLines[0].Separator = TRUE;
     
-    lstrcpy(infoLines[1].Text, getMsg(MDiskTitle));
+    strcpy(infoLines[1].Text, getMsg(MDiskTitle));
     while(noChars--)
       if(dsk.title[noChars] != ' ' && dsk.title[noChars] != 0) break;
     
-    lstrcpyn(infoLines[1].Data, dsk.title, noChars+2);
+    strncpy(infoLines[1].Data, (const char*)dsk.title, noChars+2);
     infoLines[1].Separator = FALSE;
     
-    lstrcpy(infoLines[2].Text, getMsg(MTotalBlocks));
-    wsprintf(infoLines[2].Data, "%d", dsk.noBlocks);
+    strcpy(infoLines[2].Text, getMsg(MTotalBlocks));
+    sprintf(infoLines[2].Data, "%d", dsk.noBlocks);
     infoLines[2].Separator = FALSE;
     
-    lstrcpy(infoLines[3].Text, getMsg(MFreeBlocks));
-    wsprintf(infoLines[3].Data, "%d", noFreeBlocks);
+    strcpy(infoLines[3].Text, getMsg(MFreeBlocks));
+    sprintf(infoLines[3].Data, "%d", noFreeBlocks);
     infoLines[3].Separator = FALSE;
     info->InfoLines = infoLines;
     info->InfoLinesNumber = sizeof(infoLines)/sizeof(infoLines[0]);
@@ -149,7 +153,7 @@ int Manager::getFindData(PluginPanelItem **pPanelItem, int *pNoItems, int opMode
   if(!readInfo()) return FALSE;
   
   PluginPanelItem* item = (PluginPanelItem*)malloc(files[0].dir.noFiles*sizeof(PluginPanelItem));
-  ZeroMemory(item, (files[0].dir.noFiles)*sizeof(PluginPanelItem));
+  memset(item, 0, (files[0].dir.noFiles)*sizeof(PluginPanelItem));
   
   int inx = 0;
   
@@ -165,34 +169,34 @@ int Manager::getFindData(PluginPanelItem **pPanelItem, int *pNoItems, int opMode
       item[inx].CustomColumnData[2] = (char*)malloc(6);
 
       FILETIME ft;
-      ZeroMemory(&ft, sizeof(ft));
+      memset(&ft, 0, sizeof(ft));
       if(isDir(files[fNum]))
       {
         DosDateTimeToFileTime(files[fNum].date, 0, &ft);
         item[inx].FindData.dwFileAttributes = FILE_ATTRIBUTE_DIRECTORY;
         if(files[fNum].attr & FLAG_SOLID)
-          wsprintf(item[inx].CustomColumnData[1], "%5d", files[fNum].dir.firstBlock);
+          sprintf(item[inx].CustomColumnData[1], "%5d", files[fNum].dir.firstBlock);
         else
-          wsprintf(item[inx].CustomColumnData[1], "%5d", files[fNum].dir.descr1stBlock);
+          sprintf(item[inx].CustomColumnData[1], "%5d", files[fNum].dir.descr1stBlock);
         item[inx].CustomColumnData[2][0] = 0;
       }
       else
       {
         item[inx].FindData.dwFileAttributes = FILE_ATTRIBUTE_NORMAL;
-        item[inx].FindData.nFileSizeLow     = getSize(files[fNum]);
-        wsprintf(item[inx].CustomColumnData[1], "%5d", files[fNum].file.firstBlock);
-        wsprintf(item[inx].CustomColumnData[2], "%5d", files[fNum].file.loadAddr);
+        item[inx].FindData.nFileSize     = getSize(files[fNum]);
+        sprintf(item[inx].CustomColumnData[1], "%5d", files[fNum].file.firstBlock);
+        sprintf(item[inx].CustomColumnData[2], "%5d", files[fNum].file.loadAddr);
         DosDateTimeToFileTime(files[fNum].date, files[fNum].file.time, &ft);
       }
       if(files[fNum].attr & FLAG_HIDDEN)
         item[inx].FindData.dwFileAttributes |= FILE_ATTRIBUTE_HIDDEN;
       
       LocalFileTimeToFileTime(&ft, &ft);
-      makeName(files[fNum], item[inx].FindData.cFileName);
+      makeName(files[fNum], (const u8*)item[inx].FindData.cFileName);
 
       item[inx].FindData.ftLastWriteTime = ft;
       
-      lstrcpy(item[inx].CustomColumnData[0], "....");
+      strcpy(item[inx].CustomColumnData[0], "....");
       if(!(files[fNum].attr & FLAG_SOLID))       item[inx].CustomColumnData[0][0] = 'S';
       if(files[fNum].attr & FLAG_READ_PROTECT)   item[inx].CustomColumnData[0][1] = 'R';
       if(files[fNum].attr & FLAG_WRITE_PROTECT)  item[inx].CustomColumnData[0][2] = 'W';
@@ -229,7 +233,7 @@ int Manager::setDirectory(char* dirName, int opMode)
       closeHostFile();
       return TRUE;
     }
-  if(!lstrcmp(dirName, ".."))
+  if(!strcmp(dirName, ".."))
   {
     if(*curDir == 0) return FALSE;
 
@@ -237,7 +241,7 @@ int Manager::setDirectory(char* dirName, int opMode)
     readFolder(files[0].dir.parentDir1stBlock, files);
     closeHostFile();
 
-    int i = lstrlen(curDir) - 2;
+    int i = strlen(curDir) - 2;
     while(i != -1 && curDir[i] != '\\') --i;
     curDir[i] = 0;
   }
@@ -250,7 +254,7 @@ int Manager::setDirectory(char* dirName, int opMode)
       if(!(files[fNum].attr & FLAG_EXIST)) continue;
       if(!isDir(files[fNum])) continue;
       makeName(files[fNum], name);
-      if(!lstrcmp(name, dirName)) break;
+      if(!strcmp((const char*)name, dirName)) break;
     }
     if(fNum == files[0].dir.totalFiles) return FALSE;
 
@@ -258,8 +262,8 @@ int Manager::setDirectory(char* dirName, int opMode)
     readFolder(files[fNum], files);
     closeHostFile();
     
-    lstrcat(curDir, "\\");
-    lstrcat(curDir, dirName);
+    strcat(curDir, "\\");
+    strcat(curDir, dirName);
   }
   return TRUE;
 }

@@ -1,0 +1,85 @@
+.Language=English,English
+
+"&Ok"
+"&Cancel"
+
+"&All"
+"&Skip"
+"S&kip all"
+
+"iS-DOS disk explorer"
+"Name,Size,Attr,fBlk,Start"
+"&Default panel mode"
+"Mode 4 settings:"
+"Column t&ypes"
+"Column &widths"
+"Column &titles"
+"&Save"
+
+"iS-DOS Chic"
+"iS-DOS Classic"
+"Disk  title"
+"Total blocks"
+"Free  blocks"
+
+"Attributes"
+"Change file attributes for"
+"&Read protect"
+"&Write protect"
+"&Delete protect"
+"&Hidden"
+"&Start adress"
+"DD.MM.YYYY"
+"D&ate"
+"hh:mm:ss"
+"&Time"
+
+"Rename \"%s\" &to"
+"Rename file or folder"
+
+"Delete folder"
+"The following folder will be deleted:"
+"&Delete"
+
+"The file is protected"
+"Do you wish to delete it?"
+
+"Delete"
+"Delete files"
+"      Deleting the file or folder      "
+
+"Do you wish to delete"
+"%d files"
+
+"Source             %8d %02d.%02d.%04d %02d:%02d:%02d"
+"Destination        %8d %02d.%02d.%04d %02d:%02d:%02d"
+
+"to"
+"Move"
+"Moving the file                         "
+"Copy"
+"Copying the file                        "
+
+"Copy"
+"Move"
+"Co&py"
+"&Move"
+
+"%s \"%s\" &to:"
+"%s %d files &to:"
+
+"Warning"
+"File already exists"
+"&Overwrite"
+
+"Error"
+"Can't create file"
+"Can't open file"
+"Can't read block"
+"Can't write block"
+"Block: %d"
+"Not enough disk space"
+"Too many files and folders"
+
+"Make folder"
+"Create the folder"

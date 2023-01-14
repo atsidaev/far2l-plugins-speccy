@@ -1,4 +1,6 @@
 #include <windows.h>
+#include "far2sdk/farplug-mb.h"
+using namespace oldfar;
 
 #include "manager.hpp"
 #include "tools.hpp"
@@ -29,8 +31,8 @@ int Manager::makeFolder(UniHdr* pDir, const char* name)
   if(noFreeBlocks < 2) return -1;
 
   UniHdr newDir;
-  ZeroMemory(&newDir, sizeof(UniHdr));
-  FillMemory(&newDir, 8+3, ' ');
+  memset(&newDir, 0, sizeof(UniHdr));
+  memset(&newDir, ' ', 8+3);
 
   for(int i = 0; i < 8; ++i)
   {
@@ -61,7 +63,7 @@ int Manager::makeFolder(UniHdr* pDir, const char* name)
   markBlock(newDir.dir.descr1stBlock);
 
   u8 block[blockSize];
-  ZeroMemory(block, blockSize);
+  memset(block, 0, blockSize);
   block[0] = 1;
   *(u16*)(block+1) = newDir.dir.firstBlock;
   block[3] = 1;
@@ -79,14 +81,14 @@ int Manager::makeFolder(UniHdr* pDir, const char* name)
   setDate(newDir, time);
   
   u8 buf[blockSize];
-  ZeroMemory(buf, blockSize);
-  CopyMemory(buf, &newDir, sizeof(UniHdr));
+  memset(buf, 0, blockSize);
+  memcpy(buf, &newDir, sizeof(UniHdr));
   writeFolder((UniHdr*)buf);
   int fNum = 1;
   for(; fNum < pDir[0].dir.totalFiles; ++fNum)
     if(!(pDir[fNum].attr & FLAG_EXIST)) break;
   
-  CopyMemory(&pDir[fNum], &newDir, sizeof(UniHdr));
+  memcpy(&pDir[fNum], &newDir, sizeof(UniHdr));
   if(fNum == pDir[0].dir.totalFiles) ++pDir[0].dir.totalFiles;
   ++pDir[0].dir.noFiles;
 
@@ -102,7 +104,7 @@ int Manager::makeDirectory(char *dirName, int opMode)
   {
     DI_DOUBLEBOX,3,1,60,6,0,0,0,0,(char *)MMakeFolder,
     DI_TEXT,5,2,0,0,0,0,0,0,(char *)MCreateFolder,
-    DI_EDIT,5,3,58,3,1,(int)historyName,DIF_HISTORY,0,dirName,
+    DI_EDIT,5,3,58,3,1,(DWORD_PTR)historyName,DIF_HISTORY,0,dirName,
     DI_TEXT,3,4,0,0,0,0,DIF_BOXCOLOR|DIF_SEPARATOR,0,"",
     DI_BUTTON,0,5,0,0,0,0,DIF_CENTERGROUP,1,(char*)MOk,
     DI_BUTTON,0,5,0,0,0,0,DIF_CENTERGROUP,0,(char*)MCancel
@@ -111,7 +113,7 @@ int Manager::makeDirectory(char *dirName, int opMode)
   FarDialogItem dialogItems[sizeof(items)/sizeof(items[0])];
   initDialogItems(items, dialogItems, sizeof(items)/sizeof(items[0]));
   
-  // ¥á«¨ ­ ¤® ¯®ª § âì ¤¨ «®£, â® ¯®ª ¦¥¬
+  // ÐµÑÐ»Ð¸ Ð½Ð°Ð´Ð¾ Ð¿Ð¾ÐºÐ°Ð·Ð°Ñ‚ÑŒ Ð´Ð¸Ð°Ð»Ð¾Ð³, Ñ‚Ð¾ Ð¿Ð¾ÐºÐ°Ð¶ÐµÐ¼
   if((opMode & OPM_SILENT) == 0)
   {
     int askCode = startupInfo.Dialog(startupInfo.ModuleNumber,
@@ -119,7 +121,7 @@ int Manager::makeDirectory(char *dirName, int opMode)
                                      NULL,
                                      dialogItems,
                                      sizeof(dialogItems)/sizeof(dialogItems[0]));
-    lstrcpy(dirName, dialogItems[2].Data);
+    strcpy(dirName, dialogItems[2].Data);
     if(askCode != 4) return -1;
   }
   char *p = dirName;

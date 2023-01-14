@@ -40,12 +40,12 @@ void makeName(const UniHdr& h, u8* buf)
 
   if(i == 3 || i == 4)
   {
-    if(compareMemoryIgnoreCase(buf, "com", 3) ||
-       compareMemoryIgnoreCase(buf, "lpt", 3) ||
-       compareMemoryIgnoreCase(buf, "prn", 3) ||
-       compareMemoryIgnoreCase(buf, "con", 3) ||
-       compareMemoryIgnoreCase(buf, "aux", 3) ||
-       compareMemoryIgnoreCase(buf, "nul", 3)) buf[i++] = '_';
+    if(strncmp((const char*)buf, "com", 3) == 0 ||
+       strncmp((const char*)buf, "lpt", 3) == 0 ||
+       strncmp((const char*)buf, "prn", 3) == 0 ||
+       strncmp((const char*)buf, "con", 3) == 0 ||
+       strncmp((const char*)buf, "aux", 3) == 0 ||
+       strncmp((const char*)buf, "nul", 3) == 0) buf[i++] = '_';
   }
 
   if(h.ext[0] != ' ')
@@ -64,7 +64,7 @@ void makeName(const UniHdr& h, u8* buf)
 SYSTEMTIME makeDate(const UniHdr& h)
 {
   SYSTEMTIME t;
-  ZeroMemory (&t, sizeof(SYSTEMTIME));
+  memset(&t, 0, sizeof(SYSTEMTIME));
   
   t.wDay   = h.date & 0x1F;
   t.wMonth = (h.date>>5) & 0x0F;
@@ -102,7 +102,7 @@ u16 findFile(const UniHdr* pDir, const char* fileName)
     {
       u8 name[8+3+2];
       makeName(pDir[fNum], name);
-      if(!lstrcmp(fileName, name)) break;
+      if(!strcmp(fileName, (char*)name)) break;
     }
   }
   if(fNum == pDir[0].dir.totalFiles)
