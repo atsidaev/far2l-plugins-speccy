@@ -1,5 +1,7 @@
-#ifndef filer_hpp
-#define filer_hpp
+#ifndef fdd_filer_hpp
+#define fdd_filer_hpp
+
+#include <windows.h>
 
 class FilerFDD
 {

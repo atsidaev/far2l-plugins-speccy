@@ -1,9 +1,8 @@
-#include "../fmt.hpp"
 #include "filer.hpp"
 #include "udi.hpp"
 #include "../../../shared/widestring.hpp" 
 
-bool WINAPI _export udi_isImage(const char* fileName, const BYTE* data, int size)
+bool udi_isImage(const char* fileName, const BYTE* data, int size)
 {
   if(data[0] != 'U' || data[1] != 'D' || data[2] != 'I' || data[3] != '!' ||
      data[8] != 0) return false;
@@ -81,55 +80,55 @@ bool WINAPI _export udi_isImage(const char* fileName, const BYTE* data, int size
   return false;
 }
 
-HANDLE WINAPI _export udi_init(const char* fileName)
+HANDLE udi_init(const char* fileName)
 {
   return (HANDLE)(new FilerUDI(fileName));
 }
 
-void WINAPI _export udi_cleanup(HANDLE h)
+void udi_cleanup(HANDLE h)
 {
   delete (FilerUDI*)h;
 }
 
-bool WINAPI _export udi_reload (HANDLE h) { return true; }
+bool udi_reload (HANDLE h) { return true; }
 
-bool WINAPI _export udi_open(HANDLE h)
+bool udi_open(HANDLE h)
 {
   FilerUDI* f = (FilerUDI*)h;
   return f->open();
 }
 
-bool WINAPI _export udi_close(HANDLE h)
+bool udi_close(HANDLE h)
 {
   FilerUDI* f = (FilerUDI*)h;
   return f->close();
 }
 
-bool WINAPI _export udi_read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
+bool udi_read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
   FilerUDI* f = (FilerUDI*)h;
   return f->read(trk, sec, buf);
 }
 
-bool WINAPI _export udi_write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
+bool udi_write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
   FilerUDI* f = (FilerUDI*)h;
   return f->write(trk, sec, buf);
 }
 
-char* WINAPI _export udi_getFormatName (void)
+char* udi_getFormatName (void)
 {
   static char* name = "UDI";
   return name;
 }
 
-bool WINAPI _export udi_isProtected(HANDLE h)
+bool udi_isProtected(HANDLE h)
 {
   FilerUDI* f = (FilerUDI*)h;
   return f->isProtected();
 }
 
-bool WINAPI _export udi_protect(HANDLE h, bool on)
+bool udi_protect(HANDLE h, bool on)
 {
   FilerUDI* f = (FilerUDI*)h;
   return f->protect(on);

@@ -1,5 +1,4 @@
 #include <windows.h>
-#include "../fmt.hpp"
 #include "../../../shared/widestring.hpp"
 
 const unsigned short sectorSize = 0x100;
@@ -10,7 +9,7 @@ struct ImageInfo
   HANDLE hostFile;
 };
 
-bool WINAPI _export trd_isImage(const char* fileName, const BYTE* data, int size)
+bool trd_isImage(const char* fileName, const BYTE* data, int size)
 {
   if(size < 0x8E8) return false;
   if(data[0x8E7] != 0x10) return false;
@@ -25,23 +24,23 @@ bool WINAPI _export trd_isImage(const char* fileName, const BYTE* data, int size
   return true;
 }
 
-HANDLE WINAPI _export trd_init(const char* fileName)
+HANDLE trd_init(const char* fileName)
 {
   ImageInfo* ii = new ImageInfo;
   strcpy(ii->fileName, fileName);
   return (HANDLE)ii;
 }
 
-bool WINAPI _export trd_cleanup(HANDLE h)
+bool trd_cleanup(HANDLE h)
 {
   ImageInfo* ii = (ImageInfo*)h;
   delete ii;
   return 1;
 }
 
-bool WINAPI _export trd_reload(HANDLE h) { return true; }
+bool trd_reload(HANDLE h) { return true; }
 
-bool WINAPI _export trd_open(HANDLE h)
+bool trd_open(HANDLE h)
 {
   ImageInfo* ii = (ImageInfo*)h;
 
@@ -61,13 +60,13 @@ bool WINAPI _export trd_open(HANDLE h)
   return (ii->hostFile != INVALID_HANDLE_VALUE);
 }
 
-bool WINAPI _export trd_close(HANDLE h)
+bool trd_close(HANDLE h)
 {
   ImageInfo* ii = (ImageInfo*)h;
   return CloseHandle(ii->hostFile);
 }
 
-bool WINAPI _export trd_read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
+bool trd_read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
   ImageInfo* ii = (ImageInfo*)h;  
 
@@ -83,7 +82,7 @@ bool WINAPI _export trd_read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
   return (noBytesRead == sectorSize);
 }
 
-bool WINAPI _export trd_write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
+bool trd_write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
   ImageInfo* ii = (ImageInfo*)h;
   
@@ -98,20 +97,20 @@ bool WINAPI _export trd_write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
   return (noBytesWritten == sectorSize);
 }
 
-char* WINAPI _export trd_getFormatName(void)
+char* trd_getFormatName(void)
 {
   static char* name = "TRD";
   return name;
 }
 
-bool WINAPI _export trd_isProtected(HANDLE h)
+bool trd_isProtected(HANDLE h)
 {
   ImageInfo* ii   = (ImageInfo*)h;
   DWORD      attr = GetFileAttributes(_W(ii->fileName).c_str());
   return (attr & FILE_ATTRIBUTE_READONLY);
 }
 
-bool WINAPI _export trd_protect(HANDLE h, bool on)
+bool trd_protect(HANDLE h, bool on)
 {
   ImageInfo* ii   = (ImageInfo*)h;
   DWORD      attr = GetFileAttributes(_W(ii->fileName).c_str());

@@ -3,16 +3,16 @@
 
 #include <windows.h>
 
-  bool   WINAPI _export trd_isImage      (const char* fileName, const BYTE* data, int size);
-  HANDLE WINAPI _export trd_init         (const char* fileName);
-  bool   WINAPI _export trd_cleanup      (HANDLE h);
-  bool   WINAPI _export trd_reload       (HANDLE h);
-  bool   WINAPI _export trd_open         (HANDLE h);
-  bool   WINAPI _export trd_close        (HANDLE h);
-  bool   WINAPI _export trd_read         (HANDLE h, BYTE trk, BYTE sec, BYTE* buf);
-  bool   WINAPI _export trd_write        (HANDLE h, BYTE trk, BYTE sec, BYTE* buf);
-  char*  WINAPI _export trd_getFormatName(void);
-  bool   WINAPI _export trd_isProtected  (HANDLE h);
-  bool   WINAPI _export trd_protect      (HANDLE h, bool on);
+  bool   trd_isImage      (const char* fileName, const BYTE* data, int size);
+  HANDLE trd_init         (const char* fileName);
+  bool   trd_cleanup      (HANDLE h);
+  bool   trd_reload       (HANDLE h);
+  bool   trd_open         (HANDLE h);
+  bool   trd_close        (HANDLE h);
+  bool   trd_read         (HANDLE h, BYTE trk, BYTE sec, BYTE* buf);
+  bool   trd_write        (HANDLE h, BYTE trk, BYTE sec, BYTE* buf);
+  char*  trd_getFormatName(void);
+  bool   trd_isProtected  (HANDLE h);
+  bool   trd_protect      (HANDLE h, bool on);
 
 #endif

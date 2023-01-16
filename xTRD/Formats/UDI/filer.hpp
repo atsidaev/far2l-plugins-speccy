@@ -1,5 +1,7 @@
-#ifndef filer_hpp
-#define filer_hpp
+#ifndef udi_filer_hpp
+#define udi_filer_hpp
+
+#include <windows.h>
 
 class FilerUDI
 {

@@ -19,7 +19,7 @@ FmtReader* fmtReader;
 Registry*  reg;
 Detector*  detector;
 
-void WINAPI _export SetStartupInfo(PluginStartupInfo *info)
+void SetStartupInfo(PluginStartupInfo *info)
 {
   // получили свою копию PluginStartupInfo
   startupInfo = *info;
@@ -52,14 +52,14 @@ void WINAPI _export SetStartupInfo(PluginStartupInfo *info)
   fmtReader           = new FmtReader();
 }
 
-void WINAPI _export ExitFAR()
+void ExitFAR()
 {
   delete reg;
   delete detector;
   delete fmtReader;
 }
 
-HANDLE WINAPI _export OpenFilePlugin(char *name, const unsigned char *data, int dataSize)
+HANDLE OpenFilePlugin(char *name, const unsigned char *data, int dataSize)
 {
   if(name == NULL) return INVALID_HANDLE_VALUE;
 
@@ -70,7 +70,7 @@ HANDLE WINAPI _export OpenFilePlugin(char *name, const unsigned char *data, int 
   return (HANDLE)m;
 }
 
-HANDLE WINAPI _export OpenPlugin(int OpenFrom, int Item)
+HANDLE OpenPlugin(int OpenFrom, int Item)
 {
   if(OpenFrom != OPEN_COMMANDLINE) return INVALID_HANDLE_VALUE;
   char *fileName = (char*)Item;
@@ -104,12 +104,12 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom, int Item)
   return (HANDLE)m;
 }
 
-void WINAPI _export ClosePlugin(HANDLE hPlugin)
+void ClosePlugin(HANDLE hPlugin)
 {
   delete (Manager*)hPlugin;
 }
 
-int WINAPI _export GetFindData(HANDLE hPlugin,
+int GetFindData(HANDLE hPlugin,
                                PluginPanelItem **pPanelItem,
                                int *pNoItems,
                                int opMode)
@@ -118,7 +118,7 @@ int WINAPI _export GetFindData(HANDLE hPlugin,
   return (m->getFindData(pPanelItem, pNoItems, opMode));
 }
 
-void WINAPI _export FreeFindData(HANDLE hPlugin,
+void FreeFindData(HANDLE hPlugin,
                                  PluginPanelItem *panelItem,
                                  int noItems)
 {
@@ -126,13 +126,13 @@ void WINAPI _export FreeFindData(HANDLE hPlugin,
   m->freeFindData(panelItem, noItems);
 }
 
-void WINAPI _export GetOpenPluginInfo(HANDLE hPlugin, OpenPluginInfo *info)
+void GetOpenPluginInfo(HANDLE hPlugin, OpenPluginInfo *info)
 {
   Manager* m = (Manager*)hPlugin;
   m->getOpenPluginInfo(info);
 }
 
-void WINAPI _export GetPluginInfo(PluginInfo *info)
+void GetPluginInfo(PluginInfo *info)
 {
   info->StructSize = sizeof(*info);
   info->Flags      = PF_DISABLEPANELS;
@@ -145,7 +145,7 @@ void WINAPI _export GetPluginInfo(PluginInfo *info)
   info->PluginConfigStringsNumber = 1;
 }
 
-int WINAPI _export ProcessEvent(HANDLE hPlugin, int event, void *param)
+int ProcessEvent(HANDLE hPlugin, int event, void *param)
 {
   if(event == FE_CHANGEVIEWMODE)
   {
@@ -163,25 +163,25 @@ int WINAPI _export ProcessEvent(HANDLE hPlugin, int event, void *param)
   return FALSE;
 }
 
-int WINAPI _export SetDirectory(HANDLE hPlugin, char* dirName, int opMode)
+int SetDirectory(HANDLE hPlugin, char* dirName, int opMode)
 {
   Manager* m = (Manager*)hPlugin;
   return m->setDirectory(dirName, opMode);
 }
 
-int WINAPI _export MakeDirectory(HANDLE hPlugin, char *name, int opMode)
+int MakeDirectory(HANDLE hPlugin, char *name, int opMode)
 {
   Manager* m = (Manager*)hPlugin;
   return m->makeDirectory(name, opMode);
 }
 
-int WINAPI _export DeleteFiles (HANDLE hPlugin, PluginPanelItem *panelItem, int noItems, int opMode)
+int DeleteFiles (HANDLE hPlugin, PluginPanelItem *panelItem, int noItems, int opMode)
 {
   Manager* m = (Manager*)hPlugin;
   return (m->deleteFiles(panelItem, noItems, opMode));
 }
 
-int WINAPI _export GetFiles(HANDLE hPlugin,
+int GetFiles(HANDLE hPlugin,
                             PluginPanelItem *panelItem,
                             int noItems,
                             int move,
@@ -192,7 +192,7 @@ int WINAPI _export GetFiles(HANDLE hPlugin,
   return (m->getFiles(panelItem, noItems, move, destPath, opMode));
 }
 
-int WINAPI _export PutFiles(HANDLE hPlugin,
+int PutFiles(HANDLE hPlugin,
                             PluginPanelItem *panelItem,
                             int noItems,
                             int move,
@@ -202,7 +202,7 @@ int WINAPI _export PutFiles(HANDLE hPlugin,
   return (m->putFiles(panelItem, noItems, move, opMode));
 }
 
-int WINAPI _export Configure(int itemNum)
+int Configure(int itemNum)
 {
   InitDialogItem items[] =
   {
@@ -295,13 +295,13 @@ int WINAPI _export Configure(int itemNum)
   return TRUE;
 }
 
-int WINAPI _export ProcessKey(HANDLE hPlugin, int key, unsigned int controlState)
+int ProcessKey(HANDLE hPlugin, int key, unsigned int controlState)
 {
   Manager* m = (Manager*)hPlugin;
   return (m->processKey(key, controlState));
 }
 
-int WINAPI _export ProcessHostFile(HANDLE hPlugin, PluginPanelItem *panelItem, int noItems, int opMode)
+int ProcessHostFile(HANDLE hPlugin, PluginPanelItem *panelItem, int noItems, int opMode)
 {
   Manager* m = (Manager*)hPlugin;
   return (m->processHostFile(panelItem, noItems, opMode));

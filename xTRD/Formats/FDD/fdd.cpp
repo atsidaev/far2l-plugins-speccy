@@ -1,9 +1,8 @@
-#include "../fmt.hpp"
 #include "filer.hpp"
 #include "fdd.hpp"
 #include "../../../shared/widestring.hpp"
 
-bool WINAPI _export fdd_isImage(const char* fileName, const BYTE* data, int size)
+bool fdd_isImage(const char* fileName, const BYTE* data, int size)
 {
   BYTE *ID = (BYTE*)"SPM DISK (c) 1996 MOA v0.1    ";
   for (BYTE i = 0; i< versionLength; i++)
@@ -60,55 +59,55 @@ bool WINAPI _export fdd_isImage(const char* fileName, const BYTE* data, int size
   return true;
 }
 
-HANDLE WINAPI _export fdd_init(const char* fileName)
+HANDLE fdd_init(const char* fileName)
 {
   return (HANDLE)(new FilerFDD(fileName));
 }
 
-void WINAPI _export fdd_cleanup(HANDLE h)
+void fdd_cleanup(HANDLE h)
 {
   delete (FilerFDD*)h;
 }
 
-bool WINAPI _export fdd_reload (HANDLE h) { return true; }
+bool fdd_reload (HANDLE h) { return true; }
 
-bool WINAPI _export fdd_open(HANDLE h)
+bool fdd_open(HANDLE h)
 {
   FilerFDD* f = (FilerFDD*)h;
   return f->open();
 }
 
-bool WINAPI _export fdd_close(HANDLE h)
+bool fdd_close(HANDLE h)
 {
   FilerFDD* f = (FilerFDD*)h;
   return f->close();
 }
 
-bool WINAPI _export fdd_read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
+bool fdd_read(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
   FilerFDD* f = (FilerFDD*)h;
   return f->read(trk, sec, buf);
 }
 
-bool WINAPI _export fdd_write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
+bool fdd_write(HANDLE h, BYTE trk, BYTE sec, BYTE* buf)
 {
   FilerFDD* f = (FilerFDD*)h;
   return f->write(trk, sec, buf);
 }
 
-char* WINAPI _export fdd_getFormatName (void)
+char* fdd_getFormatName (void)
 {
   static char* name = "FDD";
   return name;
 }
 
-bool WINAPI _export fdd_isProtected(HANDLE h)
+bool fdd_isProtected(HANDLE h)
 {
   FilerFDD* f = (FilerFDD*)h;
   return f->isProtected();
 }
 
-bool WINAPI _export fdd_protect(HANDLE h, bool on)
+bool fdd_protect(HANDLE h, bool on)
 {
   FilerFDD* f = (FilerFDD*)h;
   return f->protect(on);
