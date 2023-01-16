@@ -2,6 +2,8 @@
 #define iSDOS_hpp
 #include "types.hpp"
 
+#pragma pack(1)
+
 struct FileHdr
 {
   u16 loadAddr;
@@ -58,6 +60,8 @@ struct DiskHdr
   FileHdr is_dos_sys;
   u8      secTable[0x10];
 };
+
+#pragma pack()
 
 const u8 FLAG_EXIST          = 0x01;
 const u8 FLAG_READ_PROTECT   = 0x04;

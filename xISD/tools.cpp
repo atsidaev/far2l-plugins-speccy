@@ -6,9 +6,9 @@ using namespace oldfar;
 
 extern PluginStartupInfo startupInfo;
 
-char* pointToName(char* path)
+const char* pointToName(const char* path)
 {
-  char *namePtr = path;
+  const char *namePtr = path;
   while(*path)
   {
     if(*path == '\\' || *path == '/' || *path==':') namePtr = path+1;
@@ -17,10 +17,10 @@ char* pointToName(char* path)
   return namePtr;
 }
 
-char* pointToExt(char* path)
+const char* pointToExt(const char* path)
 {
   int i = strlen(path);
-  char *ptr = path + i;
+  const char *ptr = path + i;
   while(*ptr != '.' && i != 0) { ptr--; i--; }
   if(i)
     return (ptr+1);
@@ -34,7 +34,7 @@ void addEndSlash(char *path)
   if(!path) return;
   int length = strlen(path);
   if(length != 0 && path[length-1] == ':') return;
-  if(length != 0 && path[length-1] != '\\') strcat(path,"\\");
+  if(length != 0 && path[length-1] != '/') strcat(path,"/");
 }
 
 char* getMsg(int msgId)
@@ -114,11 +114,11 @@ char* makeFullName(char* fullName, const char* path, const char* name)
   return strcat(fullName, name);
 }
 
-void makeCompatibleFileName(char* newName, char* oldName)
+void makeCompatibleFileName(char* newName, const char* oldName)
 {
   if(*oldName == 0) return;
   char* p = newName;
-  char* q = oldName;
+  const char* q = oldName;
   for(int i = 0; i < 8; ++i)
   {
     if(*q == 0 || *q == '.') break;

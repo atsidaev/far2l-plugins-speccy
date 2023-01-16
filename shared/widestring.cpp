@@ -23,13 +23,3 @@ std::string _N(wchar_t* s)
 	std::string converted_str = converter.to_bytes(wc);
 	return converted_str;
 }
-
-const wchar_t* _WW(char* str)
-{
-	return _W(str).c_str();
-}
-
-const char* _NN(wchar_t* str)
-{
-	return _N(str).c_str();
-}

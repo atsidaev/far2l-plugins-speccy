@@ -6,8 +6,8 @@ using namespace oldfar;
 #include "types.hpp"
 
 bool  compareMemoryIgnoreCase(u8* p1, u8* p2, u16 size);
-char* pointToName    (char *path);
-char* pointToExt     (char *path);
+const char* pointToName    (const char *path);
+const char* pointToExt     (const char *path);
 void  addEndSlash    (char *path);
 char* getMsg         (int msgId);
 void  initDialogItems(InitDialogItem *init, FarDialogItem *item, int noItems);
