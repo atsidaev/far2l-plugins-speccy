@@ -31,7 +31,7 @@ XISD_OBJS = xISD/XiSD.o xISD/manager.o xISD/FmtReader.o xISD/tools.o xISD/iSDOS_
             xISD/manager_tools.o xISD/manager_delete_files.o xISD/manager_get_files.o \
             xISD/manager_put_files.o xISD/manager_process_key.o \
             xISD/manager_make_folder.o xISD/iterator.o \
-            xISD/Formats/IMG/img.o xISD/Formats/FDI/fdi.o
+            xISD/Formats/IMG/img.o xISD/Formats/FDI/fdi.o xISD/Formats/FDI/filer.o 
 
 all: $(TARGETS)
 

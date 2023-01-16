@@ -1,10 +1,11 @@
 #include <windows.h>
 #include "filer.hpp"
 #include "fdi.hpp"
+#include "../../../shared/widestring.hpp"
 
 Filer::Filer(char* fileName)
 {
-  lstrcpy(fName, fileName);
+  strcpy(fName, fileName);
   openFile();
 
   DWORD noBytesRead;
@@ -46,7 +47,7 @@ Filer::Filer(char* fileName)
   BYTE noSecs   = buf[0x19];
   WORD noBlocks = *(WORD*)(buf+0x12);
   blks = (DWORD*)malloc(4*noBlocks);
-  ZeroMemory(blks, 4*noBlocks);
+  memset(blks, 0, 4*noBlocks);
   
   SetFilePointer(hostFile, sizeof(FDIHdr)+hFDI.extraInfoSize, NULL, FILE_BEGIN);
   BYTE noBlksOnTrk = noSecs*sectorSize;
@@ -82,9 +83,9 @@ Filer::~Filer()
 bool Filer::openFile(void)
 {
   DWORD mode = GENERIC_READ | GENERIC_WRITE;
-  DWORD attr = GetFileAttributes(fName);
+  DWORD attr = GetFileAttributes(_W(fName).c_str());
   if(attr & FILE_ATTRIBUTE_READONLY) mode = GENERIC_READ;
-  hostFile = CreateFile(fName,
+  hostFile = CreateFile(_W(fName).c_str(),
                         mode,
                         FILE_SHARE_READ | FILE_SHARE_WRITE,
                         NULL,
@@ -101,7 +102,7 @@ bool Filer::closeFile(void)
 
 bool Filer::read(WORD blockNum, BYTE* buf)
 {
-  ZeroMemory(buf, blockSize);
+  memset(buf, 0, blockSize);
   if(!blks[blockNum]) return false;
   SetFilePointer(hostFile, blks[blockNum], NULL, FILE_BEGIN);
   DWORD noBytesRead;

@@ -57,7 +57,7 @@ int Manager::processKey(int key, unsigned int controlState)
       if(!fNum) return TRUE;
 
       char name[8+3+2] = "";
-      makeName(files[fNum], (const u8*)name);
+      makeName(files[fNum], (u8*)name);
 
       int days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
       char day[3], month[3], year[5];
@@ -246,7 +246,7 @@ int Manager::processKey(int key, unsigned int controlState)
       if(!fNum) return TRUE;
 
       char name[8+3+2] = "";
-      makeName(files[fNum], (const u8*)name);
+      makeName(files[fNum], (u8*)name);
 
       char buf[100];
       sprintf(buf, getMsg(MRenameTo), name);
@@ -291,7 +291,7 @@ int Manager::processKey(int key, unsigned int controlState)
         ++p;
       }
       
-      p = pointToExt(name);
+      p = (char*)pointToExt(name);
       
       if(p)
       {

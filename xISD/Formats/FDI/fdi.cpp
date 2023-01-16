@@ -8,7 +8,7 @@ bool WINAPI _export fdi_isImage(char* fileName, const BYTE* data, int size)
 {
   if(data[0] != 'F' || data[1] != 'D' || data[2] != 'I') return false;
 
-  HANDLE hostFile = CreateFile(_WW(fileName),
+  HANDLE hostFile = CreateFile(_W(fileName).c_str(),
                                GENERIC_READ,
                                FILE_SHARE_READ | FILE_SHARE_WRITE,
                                NULL,

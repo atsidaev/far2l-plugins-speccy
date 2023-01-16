@@ -76,11 +76,12 @@ void Manager::getOpenPluginInfo(OpenPluginInfo *info)
   info->PanelTitle = panelTitle;
 
   static PanelMode mode[5];
-  static char* columnTitles[] = { "               ",
-                                  "               ",
-                                  "               ",
-                                  "               ",
-                                  "               " };
+  static char* columnTitles[5] = { 0,0,0,0,0 };
+  if (columnTitles[0] == 0)
+  {
+    for (int i = 0; i < 5; i++)
+      columnTitles[i] = new char[16];
+  }
 
   char* p = op.columnTitles;
   int n = 0;
@@ -192,7 +193,7 @@ int Manager::getFindData(PluginPanelItem **pPanelItem, int *pNoItems, int opMode
         item[inx].FindData.dwFileAttributes |= FILE_ATTRIBUTE_HIDDEN;
       
       LocalFileTimeToFileTime(&ft, &ft);
-      makeName(files[fNum], (const u8*)item[inx].FindData.cFileName);
+      makeName(files[fNum], (u8*)item[inx].FindData.cFileName);
 
       item[inx].FindData.ftLastWriteTime = ft;
       

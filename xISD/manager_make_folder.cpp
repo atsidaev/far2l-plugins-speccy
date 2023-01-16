@@ -99,7 +99,8 @@ int Manager::makeFolder(UniHdr* pDir, const char* name)
 
 int Manager::makeDirectory(char *dirName, int opMode)
 {
-  char historyName[] = "XiSD_folder_name";
+  // TODO: why it craches when string is here?
+  char* historyName = 0; //"XiSD_folder_name";
   InitDialogItem items[] =
   {
     DI_DOUBLEBOX,3,1,60,6,0,0,0,0,(char *)MMakeFolder,
@@ -110,8 +111,9 @@ int Manager::makeDirectory(char *dirName, int opMode)
     DI_BUTTON,0,5,0,0,0,0,DIF_CENTERGROUP,0,(char*)MCancel
   };
   
-  FarDialogItem dialogItems[sizeof(items)/sizeof(items[0])];
-  initDialogItems(items, dialogItems, sizeof(items)/sizeof(items[0]));
+  FarDialogItem dialogItems[ARRAYSIZE(items)];
+  memset(dialogItems, 0, sizeof(FarDialogItem) * ARRAYSIZE(items));
+  initDialogItems(items, dialogItems, ARRAYSIZE(items));
   
   // если надо показать диалог, то покажем
   if((opMode & OPM_SILENT) == 0)

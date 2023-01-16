@@ -185,11 +185,11 @@ int Manager::getFiles(PluginPanelItem *panelItem,
       if(*c!=' ')
       {
         for(; *c; c++)
-          if(*c=='\\')
+          if(*c=='/')
           {
             *c=0;
             CreateDirectory(_W(destPath).c_str(), NULL);
-            *c='\\';
+            *c='/';
           }
         CreateDirectory(_W(destPath).c_str(), NULL);
         break;

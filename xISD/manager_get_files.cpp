@@ -167,7 +167,7 @@ int Manager::getOneFile(UniHdr&       h,
                         int           opMode)
 {
   char name[8+3+2];
-  makeName(h, (const u8*)name);
+  makeName(h, (u8*)name);
 
   char fullToName[300];
   makeFullName(fullToName, to_path, name);
@@ -258,7 +258,8 @@ int Manager::getFiles(PluginPanelItem *panelItem,
   else
     sprintf(msg, getMsg(MFilesTo), move ? actTo[1] : actTo[0], noItems);
   
-  char historyName[] = "XiSD_copy_path";
+  // TODO: why startupInfo.Dialog(...) fails if string is used here?
+  const char* historyName = 0; // "XiSD_copy_path";
   
   InitDialogItem items[] =
   {
@@ -270,8 +271,9 @@ int Manager::getFiles(PluginPanelItem *panelItem,
     DI_BUTTON,   0,5,0,0,0,0,DIF_CENTERGROUP,0,(char *)MCancel
   };
   
-  FarDialogItem dialogItems[sizeof(items)/sizeof(items[0])];
-  initDialogItems(items, dialogItems, sizeof(items)/sizeof(items[0]));
+  FarDialogItem dialogItems[ARRAYSIZE(items)];
+  memset(dialogItems, 0, sizeof(FarDialogItem) * ARRAYSIZE(items));
+  initDialogItems(items, dialogItems, ARRAYSIZE(items));
   
   // если надо показать диалог, то покажем
   if((opMode & OPM_SILENT) == 0)
@@ -280,11 +282,11 @@ int Manager::getFiles(PluginPanelItem *panelItem,
                                      -1, -1, 76, 8,
                                      NULL,
                                      dialogItems,
-                                     sizeof(dialogItems)/sizeof(dialogItems[0]));
+                                     ARRAYSIZE(dialogItems));
     if(askCode != 4) return -1;
     strcpy(destPath, dialogItems[2].Data);
   }
-  
+
   // если пользователь хочет, то создадим каталоги
   if(GetFileAttributes(_W(destPath).c_str())==0xFFFFFFFF)
     for(char *c=destPath; *c; c++)
@@ -292,11 +294,11 @@ int Manager::getFiles(PluginPanelItem *panelItem,
       if(*c!=' ')
       {
         for(; *c; c++)
-          if(*c=='\\')
+          if(*c=='/')
           {
             *c=0;
             CreateDirectory(_W(destPath).c_str(), NULL);
-            *c='\\';
+            *c='/';
           }
         CreateDirectory(_W(destPath).c_str(), NULL);
         break;

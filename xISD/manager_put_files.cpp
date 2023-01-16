@@ -17,7 +17,7 @@ extern Options           op;
 int Manager::putOneFolder(UniHdr* pDir, const WIN32_FIND_DATA& file, const char* fromDir, const char* dirName, int move, Action& action, int opMode)
 {
   char cname[8+3+2] = "";
-  makeCompatibleFolderName(cname, _NN(file.cFileName));
+  makeCompatibleFolderName(cname, _N((wchar_t*)file.cFileName).c_str());
   
   int fNum  = findFile(pDir, cname);
   if(!fNum)
@@ -30,16 +30,16 @@ int Manager::putOneFolder(UniHdr* pDir, const WIN32_FIND_DATA& file, const char*
   readFolder(pDir[fNum], curDir);
 
   char fullName[300];
-  makeFullName(fullName, dirName, _NN(file.cFileName));
+  makeFullName(fullName, dirName, _N((wchar_t*)file.cFileName).c_str());
   
   char fullFromName[300];
-  makeFullName(fullFromName, fromDir, _NN(file.cFileName));
+  makeFullName(fullFromName, fromDir, _N((wchar_t*)file.cFileName).c_str());
 
   char mask[300];
   makeFullName(mask, fullFromName, "*.*");
   
   WIN32_FIND_DATA data;
-  HANDLE h = FindFirstFile(_WW(mask), &data);
+  HANDLE h = FindFirstFile(_W(mask).c_str(), &data);
   if(h == INVALID_HANDLE_VALUE) return 1;
   int exitCode = 1;
   do
@@ -68,7 +68,7 @@ int Manager::putOneFolder(UniHdr* pDir, const WIN32_FIND_DATA& file, const char*
   FindClose(h);
   writeFolder(curDir);
   if(move && exitCode == 1)
-    if(!RemoveDirectory(_WW(fullFromName))) return 0;
+    if(!RemoveDirectory(_W(fullFromName).c_str())) return 0;
   return exitCode;
 }
 
@@ -86,9 +86,8 @@ int Manager::putOneFile(UniHdr* pDir, const WIN32_FIND_DATA& file, const char* f
     messageBox(FMSG_WARNING, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 1);
     return -1;
   }
-  char cname[8+3+2] = "";
-  makeCompatibleFileName(cname, _NN(file.cFileName));
-  
+  char cname[8+3+2];
+  makeCompatibleFileName(cname, _N((wchar_t*)file.cFileName).c_str());
   int fNum = findFile(pDir, cname);
   if(fNum)
   {
@@ -100,7 +99,7 @@ int Manager::putOneFile(UniHdr* pDir, const WIN32_FIND_DATA& file, const char* f
     if(action == ASK_USER)
     {
       char fullName[300];
-      makeFullName(fullName, dirName, _NN(file.cFileName));
+      makeFullName(fullName, dirName, _N((wchar_t*)file.cFileName).c_str());
       
       char *msgItems[12];
       msgItems[0] = getMsg(MWarning);
@@ -161,7 +160,7 @@ int Manager::putOneFile(UniHdr* pDir, const WIN32_FIND_DATA& file, const char* f
   }
 
   char fullName[300];
-  makeFullName(fullName, fromDir, _NN(file.cFileName));
+  makeFullName(fullName, fromDir, _N((wchar_t*)file.cFileName).c_str());
   if(!(opMode & OPM_SILENT))
   {
     char *msgItems[3];
@@ -181,7 +180,7 @@ int Manager::putOneFile(UniHdr* pDir, const WIN32_FIND_DATA& file, const char* f
     messageBox(0, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 0);
   }
   
-  HANDLE hFile = CreateFile(_WW(fullName),
+  HANDLE hFile = CreateFile(_W(fullName).c_str(),
                             GENERIC_READ,
                             FILE_SHARE_READ | FILE_SHARE_WRITE,
                             NULL,
@@ -194,7 +193,7 @@ int Manager::putOneFile(UniHdr* pDir, const WIN32_FIND_DATA& file, const char* f
     char *msgItems[4];
     msgItems[0] = getMsg(MError);
     msgItems[1] = getMsg(MCanNotOpen);
-    msgItems[2] = (char*)_NN(file.cFileName);
+    msgItems[2] = (char*)_N((wchar_t*)file.cFileName).c_str();
     msgItems[3] = getMsg(MOk);
     messageBox(FMSG_WARNING, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 1);
     return 0;
@@ -212,7 +211,7 @@ int Manager::putOneFile(UniHdr* pDir, const WIN32_FIND_DATA& file, const char* f
     ++p;
   }
   
-  p = pointToExt(cname);
+  p = (char*)pointToExt(cname);
   
   if(p)
   {
@@ -270,14 +269,14 @@ int Manager::putOneFile(UniHdr* pDir, const WIN32_FIND_DATA& file, const char* f
 
   CloseHandle(hFile);
   if(move)
-    if(!DeleteFile(_WW(fullName))) return 0;
+    if(!DeleteFile(_W(fullName).c_str())) return 0;
   return 1;
 }
 
-const WIN32_FIND_DATA& to_win32_find_data(FAR_FIND_DATA data)
+const WIN32_FIND_DATA to_win32_find_data(FAR_FIND_DATA data)
 {
   WIN32_FIND_DATA result;
-  lstrcpy(result.cFileName, _WW(data.cFileName));
+  lstrcpy(result.cFileName, _W(data.cFileName).c_str());
   result.dwFileAttributes = data.dwFileAttributes;
   result.ftCreationTime = data.ftCreationTime;
   result.ftLastAccessTime = data.ftLastAccessTime;

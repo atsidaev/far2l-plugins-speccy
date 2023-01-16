@@ -19,7 +19,7 @@ extern Options           op;
 int Manager::deleteOneFile(UniHdr& h, UniHdr* pDir, const char* dirName, int opMode, Action& actProtected, Action& actFolder)
 {
   char name[8+3+2];
-  makeName(h, (const u8*)name);
+  makeName(h, (u8*)name);
 
   char fullName[300];
   makeFullName(fullName, dirName, name);
