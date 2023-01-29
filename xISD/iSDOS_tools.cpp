@@ -45,10 +45,11 @@ void makeName(const UniHdr& h, u8* buf)
   std::wstring name(&wstr1[0]);
   std::wstring ext(&wstr2[0]);
 
+  // Trim spaces at the end of the name
+  name.erase(name.find_last_not_of(' ') + 1);
+
   if (ext[0] == ' ')
   {
-    name.erase(name.find_last_not_of(' ') + 1);
-
     // No extension, check if DOS reserved name and fix it if yes
     if(name == _W("com") ||
        name == _W("lpt") ||
