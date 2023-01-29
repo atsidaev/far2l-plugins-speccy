@@ -166,7 +166,7 @@ int Manager::getOneFile(UniHdr&       h,
                         Action&       action,
                         int           opMode)
 {
-  char name[8+3+2];
+  char name[2*(8+3+2)];
   makeName(h, (u8*)name);
 
   char fullToName[300];

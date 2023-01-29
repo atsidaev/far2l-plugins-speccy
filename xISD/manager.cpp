@@ -249,7 +249,7 @@ int Manager::setDirectory(char* dirName, int opMode)
   else
   {
     int fNum = 1;
-    u8 name[8+3+2];
+    u8 name[2*(8+3+2)];
     for(;fNum < files[0].dir.totalFiles; ++fNum)
     {
       if(!(files[fNum].attr & FLAG_EXIST)) continue;

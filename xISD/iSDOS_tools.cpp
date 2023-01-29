@@ -1,5 +1,8 @@
 #include "iSDOS_tools.hpp"
 #include "tools.hpp"
+#include "far2sdk/farplug-mb.h"
+using namespace oldfar;
+#include "../shared/widestring.hpp"
 
 bool isDir(const UniHdr& h)
 {
@@ -28,36 +31,40 @@ void setFileSize(UniHdr& h, int size)
   h.file.size[2] = size;
 }
 
+int PWZ_to_PZ(const wchar_t *src, char *dst, int lendst)
+{
+	return WINPORT(WideCharToMultiByte)(CP_UTF8,0,(src),-1,(dst),(int)(lendst),nullptr,nullptr);
+}
 
 void makeName(const UniHdr& h, u8* buf)
 {
-  int i = 0;
-  for(; i < 8; ++i)
+  std::vector<WCHAR> wstr1(8 * 2 + 1);
+  std::vector<WCHAR> wstr2(3 * 2 + 1);
+  MultiByteToWideChar(CP_OEMCP, 0, (char*)h.name, 8, &wstr1[0], wstr1.size() - 1);
+  MultiByteToWideChar(CP_OEMCP, 0, (char*)h.ext,  3, &wstr2[0], wstr2.size() - 1);
+  std::wstring name(&wstr1[0]);
+  std::wstring ext(&wstr2[0]);
+
+  if (ext[0] == ' ')
   {
-    if(h.name[i] == ' ') break;
-    buf[i] = h.name[i];
+    name.erase(name.find_last_not_of(' ') + 1);
+
+    // No extension, check if DOS reserved name and fix it if yes
+    if(name == _W("com") ||
+       name == _W("lpt") ||
+       name == _W("prn") ||
+       name == _W("con") ||
+       name == _W("aux") ||
+       name == _W("nul") )
+      name += '_';
+  }
+  else
+  {
+    name += _W(".");
+    name += ext;
   }
 
-  if(i == 3 || i == 4)
-  {
-    if(strncmp((const char*)buf, "com", 3) == 0 ||
-       strncmp((const char*)buf, "lpt", 3) == 0 ||
-       strncmp((const char*)buf, "prn", 3) == 0 ||
-       strncmp((const char*)buf, "con", 3) == 0 ||
-       strncmp((const char*)buf, "aux", 3) == 0 ||
-       strncmp((const char*)buf, "nul", 3) == 0) buf[i++] = '_';
-  }
-
-  if(h.ext[0] != ' ')
-  {
-    buf[i++] = '.';
-    for(int j = 0; j < 3; ++j)
-    {
-      if(h.ext[j] == ' ') break;
-      buf[i++] = h.ext[j];
-    }
-  }
-  buf[i] = 0;
+  PWZ_to_PZ(name.c_str(), (char*)buf, name.length() * 2 + 1);
 }
 
 
@@ -100,7 +107,7 @@ u16 findFile(const UniHdr* pDir, const char* fileName)
   {
     if(pDir[fNum].attr & FLAG_EXIST)
     {
-      u8 name[8+3+2];
+      u8 name[2 * (8+3+2)];
       makeName(pDir[fNum], name);
       if(!strcmp(fileName, (char*)name)) break;
     }

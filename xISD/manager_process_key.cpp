@@ -56,7 +56,7 @@ int Manager::processKey(int key, unsigned int controlState)
       int fNum = findFile(files, fName);
       if(!fNum) return TRUE;
 
-      char name[8+3+2] = "";
+      char name[2*(8+3+2)] = "";
       makeName(files[fNum], (u8*)name);
 
       int days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
@@ -245,7 +245,7 @@ int Manager::processKey(int key, unsigned int controlState)
       int fNum = findFile(files, fName);
       if(!fNum) return TRUE;
 
-      char name[8+3+2] = "";
+      char name[2*(8+3+2)] = "";
       makeName(files[fNum], (u8*)name);
 
       char buf[100];
