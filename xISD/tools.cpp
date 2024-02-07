@@ -3,6 +3,7 @@
 using namespace oldfar;
 
 #include "tools.hpp"
+#include "../shared/widestring.hpp"
 
 extern PluginStartupInfo startupInfo;
 
@@ -117,8 +118,11 @@ char* makeFullName(char* fullName, const char* path, const char* name)
 void makeCompatibleFileName(char* newName, const char* oldName)
 {
   if(*oldName == 0) return;
+
+  auto name866 = makeCp866Name(oldName);
+
   char* p = newName;
-  const char* q = oldName;
+  const char* q = &name866[0];
   for(int i = 0; i < 8; ++i)
   {
     if(*q == 0 || *q == '.') break;
@@ -150,11 +154,27 @@ void makeCompatibleFileName(char* newName, const char* oldName)
   *p = 0;
 }
 
+std::vector<char> makeCp866Name(const char* name)
+{
+  // name, which is obtained from functions, is actually UTF-8, convert it to multibyte
+  auto nLength = MultiByteToWideChar(CP_UTF8, 0, name, -1, NULL, NULL);
+  std::vector<WCHAR> wstr1(nLength);
+  MultiByteToWideChar(CP_UTF8, 0, name, -1, &wstr1[0], nLength);
+
+  // and now convert multibyte to CP866
+  std::vector<char> name866(nLength);
+  WideCharToMultiByte(CP_OEMCP, 0, &wstr1[0], -1, &name866[0], nLength, NULL, NULL);
+  return name866;
+}
+
 void makeCompatibleFolderName(char* newName, const char* oldName)
 {
   if(*oldName == 0) return;
+
+  auto oldName866 = makeCp866Name(oldName);
+
   char* p = newName;
-  const char* q = oldName;
+  const char* q = &oldName866[0];
   for(int i = 0; i < 8; ++i)
   {
     if(*q == 0 || *q == '.') break;

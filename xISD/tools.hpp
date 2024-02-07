@@ -4,6 +4,7 @@
 using namespace oldfar;
 
 #include "types.hpp"
+#include <vector>
 
 bool  compareMemoryIgnoreCase(u8* p1, u8* p2, u16 size);
 const char* pointToName    (const char *path);
@@ -17,6 +18,7 @@ char* cropLongName   (char* newName, const char* name, int noChars);
 bool  isValidChar    (char ch);
 char* makeFullName   (char* fullName, const char* path, const char* name);
 
+std::vector<char> makeCp866Name(const char* name);
 void  makeCompatibleFileName  (char* newName, const char* oldName);
 void  makeCompatibleFolderName(char* newName, const char* oldName);
 
