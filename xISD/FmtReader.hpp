@@ -1,7 +1,7 @@
 #ifndef FmtReader_hpp
 #define FmtReader_hpp
 
-#include "fmtPlugin.hpp"
+#include "FmtPlugin.hpp"
 
 class FmtReader
 {

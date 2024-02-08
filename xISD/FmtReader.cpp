@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "fmtReader.hpp"
+#include "FmtReader.hpp"
 #include "tools.hpp"
 
 #include "Formats/IMG/img.hpp"
