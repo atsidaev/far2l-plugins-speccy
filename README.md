@@ -11,9 +11,9 @@ These plugins allow one to work with various disk image formats (such as .TRD, .
 
 ## Installation
 
-You may download prebuild packages from the [Releases](https://github.com/atsidaev/far2l-plugins-speccy/releases) section. If you are on Debian/Ubuntu, get the `far2l-plugins-speccy_<version>_amd64.deb` file and then install it with `dpkg`
+You may download prebuild packages from the [Releases](https://github.com/atsidaev/far2l-plugins-speccy/releases) section. If you are on Debian/Ubuntu (only recent versions, which include far2l in repo), get the `far2l-plugins-speccy_<version>_amd64.deb` file and then install it with `dpkg`
 ```
-$ sudo dpkg -i far2l-plugins-speccy_0.9_amd64.deb
+sudo dpkg -i far2l-plugins-speccy_0.9_amd64.deb
 ```
 
 If you use other Linux distributions, you could download `far2l-plugins-speccy_<version>_amd64.zip` archive and unzip it to the location of your `far2l` installation. Most likely it is `/usr/lib/far2l/Plugins`. 
@@ -26,7 +26,7 @@ This projects requires several header files from `far2l` itself. Unfortunately, 
 So, the first build step is to update submodules. This will fetch [`far2l`](https://github.com/elfmz/far2l) sources. None of them will be built, we only require few headers from there.
 Then we are ready for compilation.
 ```
-$ git submodule update --init
+git submodule update --init
 ```
 
 Then use `make deb` target to build `deb`-package, or use `make zip` target to build the plugins as simple `zip` archive. See Installation section for instruction for the next steps.
