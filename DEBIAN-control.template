@@ -1,0 +1,9 @@
+Package: far2l-plugins-speccy
+Priority: optional
+Section: utils
+Installed-Size: <SIZE>
+Maintainer: Alexander Tsidaev <far2l@tsidaev.ru>
+Architecture: all
+Version: <VERSION>
+Depends: far2l
+Description: far2l plugins for ZX Spectrum formats support (TR-DOS, IS-DOS)

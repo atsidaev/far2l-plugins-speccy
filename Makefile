@@ -1,3 +1,4 @@
+VERSION=0.9
 FAR_PATH ?= far2l
 
 CXXFLAGS = -c -fPIC 
@@ -8,7 +9,7 @@ LD=g++
 LDFLAGS = -shared
 
 TARGETS = xCreate.far-plug-mb xSCL.far-plug-mb xTRD.far-plug-mb xISD.far-plug-mb
-RELEASE = release
+RELEASE = release/usr/lib/far2l/Plugins
 
 SHARED_BASIC_OBJS = shared/registry.o shared/widestring.o
 SHARED_OBJS = $(SHARED_BASIC_OBJS) shared/debug.o
@@ -41,7 +42,7 @@ release: all
 	for d in $(TARGETS:%.far-plug-mb=%); do cp $$d/res/* $(RELEASE)/$$d/plug; mv $$d.far-plug-mb $(RELEASE)/$$d/plug; done
 
 install: release
-	sudo cp -r release/* /usr/lib/far2l/Plugins/
+	sudo cp -r release/* $(TARGET_DIR)
 
 # TODO: use template
 
@@ -59,4 +60,26 @@ xISD.far-plug-mb: $(SHARED_OBJS) $(XISD_OBJS)
 
 clean:
 	rm $(SHARED_OBJS) $(XCREATE_OBJS) $(XSCL_OBJS) $(XTRD_OBJS) $(XISD_OBJS) $(TARGETS) || true
-	rm -rf $(RELEASE) || true
+	rm -rf $(RELEASE) *.deb *.zip || true
+
+# Installation archive
+
+zip: far2l-plugins-speccy_$(VERSION)_amd64.zip
+
+far2l-plugins-speccy_$(VERSION)_amd64.zip: release
+	(cd $(RELEASE); zip -r $(PWD)/$@ *)
+
+# Debian deb package build
+
+deb: far2l-plugins-speccy_$(VERSION)_amd64.deb
+
+release/DEBIAN/control: DEBIAN-control.template release
+	mkdir -p release/DEBIAN
+	cp $< $@
+	$(eval SIZE=$(shell sh -c "du -s release | grep -E -o '^[0-9]+'"))
+	echo SIZE=$(SIZE)
+	sed -i "s/<SIZE>/$(SIZE)/" $@
+	sed -i "s/<VERSION>/$(VERSION)/" $@
+
+far2l-plugins-speccy_$(VERSION)_amd64.deb: release/DEBIAN/control
+	dpkg-deb --root-owner-group -b release $@

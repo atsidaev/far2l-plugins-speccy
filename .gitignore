@@ -1,3 +1,6 @@
 *.o
 *.far-plug-mb
 release
+*.deb
+*.zip
+
