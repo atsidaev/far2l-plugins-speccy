@@ -39,7 +39,7 @@ struct SCLHdr
 
 struct ExtFileHdr
 {
-  char name   [13];
+  char name[32];
   char comment[100];
   BYTE type;
   bool skipHeader;

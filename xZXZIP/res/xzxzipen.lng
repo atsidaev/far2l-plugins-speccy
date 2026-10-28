@@ -1,0 +1,52 @@
+.Language=English,English
+
+"ZXZIP extractor"
+
+"Detect &files format"
+"Show &extensions"
+"&HoBeta"
+"&SCL"
+"&Auto select"
+"&INI file path"
+"Sa&ve"
+
+"&Cancel"
+
+"Unexpected end of archive"
+
+"Error"
+"&Ok"
+
+"Can't create"
+
+"Warning"
+"File already exists"
+"&Overwrite"
+"&All"
+"&Skip"
+"S&kip all"
+
+"Destination        %d"
+"Destination        %d %02d.%02d.%04d %02d:%02d:%02d"
+
+"Extract \"%s\" &to:"
+"Extract %d files &to:"
+"Extract"
+"S&kip headers"
+"&Extract"
+
+"Name"
+"Size"
+"SSz"
+"PSize"
+"PMd"
+"Start"
+"Format"
+"Comment"
+
+"Extracting file"
+"CRC error"
+
+"xZXZIP warning"
+"Error(s) in INI file"
+"Can't open INI file"

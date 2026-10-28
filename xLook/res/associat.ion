@@ -1,0 +1,4 @@
+[theX]
+view=xdg-open %f
+;view=feh %f
+;view=eog %f

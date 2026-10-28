@@ -114,10 +114,14 @@ ExitCode createFile(char* name)
 
 ExitCode Manager::getFile(int fNum, bool isMove, char* to)
 {
+  if(fNum < 0 || fNum >= noFiles)
+    return SKIP;
   ExitCode exitCode = OK;
 
   char name[300];
-  sprintf(name, "%s%s", to, pcFiles[fNum].name);
+  int length = snprintf(name, sizeof(name), "%s%s", to, pcFiles[fNum].name);
+  if(length < 0 || size_t(length) + (skipHeaders ? 4 : 0) >= sizeof(name))
+    return SKIP;
   
   char* msgItems[3];
   msgItems[0] = getMsg(MCopyingFile);
@@ -181,7 +185,11 @@ ExitCode Manager::getFile(int fNum, bool isMove, char* to)
       hdr.reserved = 0;
       hdr.noSecs   = files[fNum].noSecs;
       hdr.checkSum = calculateCheckSum(hdr);
-      WriteFile(file, &hdr, sizeof(HoHdr), &noBytesWritten, NULL);
+      if(!WriteFile(file, &hdr, sizeof(HoHdr), &noBytesWritten, NULL) ||
+         noBytesWritten != sizeof(HoHdr)) {
+        CloseHandle(file);
+        return SKIP;
+      }
     }
 
     if(files[fNum].noSecs)
@@ -192,13 +200,27 @@ ExitCode Manager::getFile(int fNum, bool isMove, char* to)
       int trk = files[fNum].trk, sec = files[fNum].sec;
       for(int s = 0; s < files[fNum].noSecs-1; ++s)
       {
-        read(trk, sec, sector);
+        if(!read(trk, sec, sector)) {
+          CloseHandle(file);
+          return SKIP;
+        }
         if(++sec == 16) { trk++; sec = 0; }
-        WriteFile(file, sector, sectorSize, &noBytesWritten, NULL);
+        if(!WriteFile(file, sector, sectorSize, &noBytesWritten, NULL) ||
+           noBytesWritten != sectorSize) {
+          CloseHandle(file);
+          return SKIP;
+        }
       }
       // обрабатываем последний сектор хитрым образом
-      read(trk, sec, sector);
-      WriteFile(file, sector, lastPartSize, &noBytesWritten, NULL);
+      if(!read(trk, sec, sector)) {
+        CloseHandle(file);
+        return SKIP;
+      }
+      if(!WriteFile(file, sector, lastPartSize, &noBytesWritten, NULL) ||
+         noBytesWritten != DWORD(lastPartSize)) {
+        CloseHandle(file);
+        return SKIP;
+      }
     }
     CloseHandle(file);
   }
@@ -415,9 +437,39 @@ int Manager::getFiles(PluginPanelItem *panelItem,
       for(fNum = 0; fNum < noFiles; ++fNum)
         if(!strcmp(panelItem[iNum].FindData.cFileName, pcFiles[fNum].name)) break;
 
+      if(fNum == noFiles) {
+        returnCode = 0;
+        continue;
+      }
       // просмотр текстовых файлов без заголовка
       if(noItems == 1 && ((opMode & OPM_VIEW) || (opMode & OPM_EDIT)) && pcFiles[fNum].skipHeader) skipHeaders = true;
       exitCode = getFile(fNum, isMove, destPath);
+
+      if(exitCode == OK && noItems == 1 && keepSilence && (opMode & OPM_VIEW) &&
+         !(opMode & (OPM_EDIT | OPM_FIND | OPM_QUICKVIEW | OPM_DESCR)) && !isMove && !scl &&
+         !skipHeaders && !memcmp(&files[fNum].type, "ZIP", 3) &&
+         memcmp(files[fNum].name, "********", 8)) {
+        for(int next = fNum + 1; next < noFiles && !memcmp(files[next].name, "********ZIP", 11);
+            ++next) {
+
+          char volumes[300];
+          int length = snprintf(volumes, sizeof(volumes), "%s.zxzip-volumes/", destPath);
+          if(length < 0 || size_t(length) >= sizeof(volumes)) {
+            exitCode = SKIP;
+            break;
+          }
+          if(GetFileAttributes(_W(volumes).c_str()) == 0xFFFFFFFF &&
+             !CreateDirectory(_W(volumes).c_str(), NULL)) {
+            exitCode = SKIP;
+            break;
+          }
+          ExitCode volumeCode = getFile(next, false, volumes);
+          if(volumeCode != OK) {
+            exitCode = volumeCode;
+            break;
+          }
+        }
+      }
     }
 
     if(exitCode == SKIP)
