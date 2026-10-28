@@ -47,21 +47,22 @@ bool read_associations(const char * module) {
   return true;
 }
 
-bool viewerArguments(const std::string & command, const std::string & file,
-                     std::vector<std::string> & args) {
+static bool parseArguments(const std::string & command, const std::string * file,
+                           std::vector<std::string> & args) {
   args.clear();
   std::string arg;
   char quote = 0;
   bool started = false;
   for(size_t i = 0; i < command.size(); ++i) {
     char c = command[i];
-    if(c == '\\' && quote != '\'') {
+    if(c == '\\' && quote != '\'' &&
+       (quote != '"' || (i + 1 < command.size() && std::strchr("\\\"$`!\n", command[i + 1])))) {
       if(++i == command.size())
         return false;
       arg += command[i];
       started = true;
-    } else if(c == '%' && i + 1 < command.size() && command[i + 1] == 'f') {
-      arg += file;
+    } else if(file && c == '%' && i + 1 < command.size() && command[i + 1] == 'f') {
+      arg += *file;
       ++i;
       started = true;
     } else if(c == '\'' || c == '"') {
@@ -88,6 +89,15 @@ bool viewerArguments(const std::string & command, const std::string & file,
   if(started)
     args.push_back(arg);
   return !args.empty() && !args[0].empty();
+}
+
+bool commandArguments(const std::string & command, std::vector<std::string> & args) {
+  return parseArguments(command, nullptr, args);
+}
+
+bool viewerArguments(const std::string & command, const std::string & file,
+                     std::vector<std::string> & args) {
+  return parseArguments(command, &file, args);
 }
 
 bool startExternalViewer(const std::string & command, const std::string & file) {

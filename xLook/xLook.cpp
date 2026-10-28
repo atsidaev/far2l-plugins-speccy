@@ -210,13 +210,12 @@ HANDLE WINAPI OpenPlugin(int from, INT_PTR item) {
   auto prefix = command.substr(0, colon);
   if(prefix != "xv" && prefix != "xe")
     return INVALID_HANDLE_VALUE;
-  auto path = command.substr(colon + 1);
-  auto first = path.find_first_not_of(" \t");
-  if(first == std::string::npos)
+  std::vector<std::string> args;
+  if(!commandArguments(command.substr(colon + 1), args) || args.size() != 1) {
+    error("Specify one filename, quoting or escaping special characters");
     return INVALID_HANDLE_VALUE;
-  path.erase(0, first);
-  FSF.Unquote(&path[0]);
-  path.resize(strlen(path.c_str()));
+  }
+  const auto & path = args[0];
   bool view = prefix == "xv";
   auto open = [&](const std::string & name, const char * title, int flags) {
     if(view)
