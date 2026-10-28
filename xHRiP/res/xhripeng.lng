@@ -1,0 +1,51 @@
+.Language=English,English
+
+"HRiP extractor"
+
+"Detect &files format"
+"Show &extensions"
+"&HoBeta"
+"&SCL"
+"&Auto select"
+"&INI file path"
+"Sa&ve"
+
+"&Cancel"
+
+"Unexpected end of archive"
+
+"Error"
+"&Ok"
+
+"Can't create"
+
+"Warning"
+"File already exists"
+"&Overwrite"
+"&All"
+"&Skip"
+"S&kip all"
+
+"Destination        %d"
+"Destination        %d %02d.%02d.%04d %02d:%02d:%02d"
+
+"DeHrust \"%s\" to"
+"DeHrust %d files to"
+"DeHrust"
+"S&kip headers"
+"&DeHrust"
+
+"Name"
+"Size"
+"SSz"
+"PSize"
+"Start"
+"Format"
+"Comment"
+
+"DeHrusting file"
+"CRC error"
+
+"xHRiP warning"
+"Error(s) in INI file"
+"Can't open INI file"

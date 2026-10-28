@@ -1,3 +1,4 @@
+.DEFAULT_GOAL := all
 VERSION=0.9
 FAR_PATH ?= far2l
 
@@ -8,7 +9,7 @@ CXXFLAGS += -DWINPORT_DIRECT -DWINPORT_REGISTRY -DUNICODE
 LD=g++
 LDFLAGS = -shared
 
-TARGETS = xCreate.far-plug-mb xSCL.far-plug-mb xTRD.far-plug-mb xISD.far-plug-mb
+TARGETS = xCreate.far-plug-mb xSCL.far-plug-mb xTRD.far-plug-mb xISD.far-plug-mb xHRiP.far-plug-mb xZXZIP.far-plug-mb xLook.far-plug-mb
 RELEASE = release/usr/lib/far2l/Plugins
 
 SHARED_BASIC_OBJS = shared/registry.o shared/widestring.o
@@ -28,13 +29,48 @@ XTRD_OBJS = xTRD/xTRD.o xTRD/manager.o xTRD/detector.o xTRD/FmtReader.o xTRD/too
 XSCL_OBJS = xSCL/xSCL.o xSCL/manager_del.o xSCL/manager_get.o xSCL/manager_key.o xSCL/manager_put.o \
             xSCL/manager_tools.o xSCL/manager.o xSCL/tools.o xSCL/detector.o
 
+XHRIP_OBJS = xHRiP/xHRiP.o xHRiP/manager.o xHRiP/manager_tools.o xHRiP/getFiles.o \
+             xHRiP/tools.o xHRiP/detector.o xHRiP/dehrust.o
+
+XZXZIP_OBJS = xZXZIP/xZXZIP.o xZXZIP/manager.o xZXZIP/manager_tools.o xZXZIP/getFiles.o \
+              xZXZIP/tools.o xZXZIP/detector.o \
+              xZXZIP/extract.o xZXZIP/extract1.o xZXZIP/extract2.o xZXZIP/extract3.o
+
+XLOOK_DETECTOR_OBJS = xLook/ALASM/alasm.o xLook/BASIC/basic.o xLook/CC3/cc3.o \
+                      xLook/DSQ/dsq.o xLook/HRUM/hrum.o xLook/HRUST1/hrust1.o \
+                      xLook/HRUST21/hrust21.o xLook/HRUST22/hrust22.o xLook/LZS/lzs.o \
+                      xLook/MASM/masm.o xLook/MSPACK/mspack.o xLook/PCD/pcd.o \
+                      xLook/STORM/storm.o xLook/TASM/tasm.o xLook/TRUSH/trush.o \
+                      xLook/XAS/xas.o xLook/ZXASM/zxasm.o \
+                      xLook/XGFX/xgfx.o xLook/XGFX/formatFactory.o \
+                      xLook/XGFX/formats/common.o xLook/XGFX/formats/screens.o \
+                      xLook/XGFX/formats/gigascreen.o xLook/XGFX/formats/multicolor.o \
+                      xLook/XGFX/formats/chunk.o xLook/XGFX/formats/bitplans.o \
+                      xLook/XGFX/formats/8col.o xLook/XGFX/formats/fonts.o \
+                      xLook/XGFX/formats/lc.o xLook/XGFX/formats/qhts.o \
+                      xLook/XGFX/formats/sprites.o xLook/XGFX/formats/asc.o \
+                      xLook/TRACKERS/trackers.o xLook/TRACKERS/module.o \
+                      xLook/TRACKERS/pt2.o xLook/TRACKERS/pt3.o
+
+$(XHRIP_OBJS) $(XZXZIP_OBJS) $(XLOOK_DETECTOR_OBJS) \
+    xLook/xLook.o xLook/tools.o xLook/detector.o xLook/association.o \
+    shared/hrust.o: CXXFLAGS += -MMD -MP
+
+XLOOK_OBJS = shared/hrust.o xLook/xLook.o xLook/tools.o xLook/detector.o xLook/association.o \
+             xLook/debug.o $(XLOOK_DETECTOR_OBJS)
+
 XISD_OBJS = xISD/XiSD.o xISD/manager.o xISD/FmtReader.o xISD/tools.o xISD/iSDOS_tools.o \
             xISD/manager_tools.o xISD/manager_delete_files.o xISD/manager_get_files.o \
             xISD/manager_put_files.o xISD/manager_process_key.o \
             xISD/manager_make_folder.o xISD/iterator.o \
             xISD/Formats/IMG/img.o xISD/Formats/FDI/fdi.o xISD/Formats/FDI/filer.o 
 
+.PHONY: all test-speccy release install clean
+
 all: $(TARGETS)
+
+test-speccy:
+	python3 tests/speccy/run.py --sanitize $(if $(EXAMPLES),--examples "$(EXAMPLES)")
 
 release: all
 	mkdir -p $(RELEASE)
@@ -52,14 +88,27 @@ xCreate.far-plug-mb: $(SHARED_BASIC_OBJS) $(XCREATE_OBJS)
 xSCL.far-plug-mb: $(SHARED_OBJS) $(XSCL_OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
+$(XTRD_OBJS): xTRD/types.hpp
+
 xTRD.far-plug-mb: $(SHARED_OBJS) $(XTRD_OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
 xISD.far-plug-mb: $(SHARED_OBJS) $(XISD_OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
+xHRiP.far-plug-mb: $(SHARED_OBJS) $(XHRIP_OBJS)
+	$(LD) $(LDFLAGS) $^ -o $@
+
+xZXZIP.far-plug-mb: $(SHARED_OBJS) $(XZXZIP_OBJS)
+	$(LD) $(LDFLAGS) $^ -o $@
+
+xLook.far-plug-mb: $(SHARED_BASIC_OBJS) $(XLOOK_OBJS)
+	$(LD) $(LDFLAGS) $^ -o $@
+
+-include $(XHRIP_OBJS:.o=.d) $(XZXZIP_OBJS:.o=.d) $(XLOOK_OBJS:.o=.d)
+
 clean:
-	rm $(SHARED_OBJS) $(XCREATE_OBJS) $(XSCL_OBJS) $(XTRD_OBJS) $(XISD_OBJS) $(TARGETS) || true
+	rm $(SHARED_OBJS) $(XCREATE_OBJS) $(XSCL_OBJS) $(XTRD_OBJS) $(XISD_OBJS) $(XHRIP_OBJS) $(XZXZIP_OBJS) $(XLOOK_OBJS) $(TARGETS) || true
 	rm -rf $(RELEASE) *.deb *.zip || true
 
 # Installation archive

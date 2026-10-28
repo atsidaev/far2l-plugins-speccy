@@ -256,10 +256,12 @@ void Manager::makePCNames(void)
        !memcmp(from, "********ZIP", 11) &&
        !memcmp(&files[fNum-1].type, "ZIP", 3))
     {
-      if(memcmp(files[fNum-1].name, "********", 8))
-        strcpy((char*)to, pcFiles[fNum-1].name);
-      else
-        strncpy((char*)to, pcFiles[fNum-1].name, strlen(pcFiles[fNum-1].name));
+      int head = fNum - 1;
+      while(head > 0 && !memcmp(files[head].name, "********ZIP", 11))
+        --head;
+      if(memcmp(files[head].name, "********", 8) && !memcmp(&files[head].type, "ZIP", 3))
+        snprintf((char *)to, sizeof(pcFiles[fNum].name), "%s%d", pcFiles[head].name,
+                 fNum - head - 1);
     }
     // обрабатываем повторяющиеся имена
     int i = fNum;

@@ -7,7 +7,24 @@ These plugins allow one to work with various disk image formats (such as .TRD, .
 ☑ xTRD \
 ☑ xSCL \
 ☑ xISD \
-☐ xLook
+☑ xLook \
+☑ xHRiP \
+☑ xZXZIP
+
+`xLook` opens supported ZX Spectrum files as panels, where their decoded contents can be extracted with F5. It recognises HoBeta files and headerless files, including bare `.scr` screens.
+
+Supported content includes:
+
+- Packed files: Hrust 1.x/2.x, HRUM, LZS, MSPACK, DSQ, PCD, CC3 and TRUSH.
+- BASIC programs and assembler sources: ALASM, MASM, TASM, XAS, ZXASM and STORM, exported as text.
+- Graphics: 32 formats, including colour and monochrome screens, GigaScreen, multicolour, chunks, bitplanes, fonts, Laser Compact, Screen Crasher and sprites, exported as RGB PNG images.
+- Tracker modules: text summaries with the tracker name, title and author where available.
+
+Graphics with multiple frames or interpretations appear as separate panel entries (`name.png`, `name_2.png`, ...). These include FLASH phases, screens without attributes, GigaScreen frames and their blended image. Each image can be extracted separately.
+
+Use `xv:path/to/file` to view decoded contents or `xe:path/to/file` to open them in an editor. Unrecognised files open in the ordinary far2l viewer or editor. For graphics, `xv:` opens an external image viewer; the bundled `xLook/plug/associat.ion` uses `xdg-open`. Edit its `view=` command to select another viewer, for example `feh %f` or `eog %f`. `%f` is replaced with the filename, and arguments may be quoted. Commands run directly without shell expansion or pipelines. All decoded images are saved together in a temporary folder, allowing viewers with folder navigation to browse them.
+
+`xHRiP` and `xZXZIP` open HRiP and ZXZip archives (including multi-volume ones) as panels and unpack files from them into HoBeta files or an SCL image.
 
 ## Installation
 
