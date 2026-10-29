@@ -1,5 +1,9 @@
 .DEFAULT_GOAL := all
-VERSION=0.9
+# Latest v* tag (v0.9 → 0.9); override with `make VERSION=1.0 …`.
+VERSION ?= $(shell git tag -l 'v*' --sort=-v:refname 2>/dev/null | head -n1 | sed 's/^v//')
+ifeq ($(strip $(VERSION)),)
+VERSION := 0.9
+endif
 FAR_PATH ?= far2l
 
 CXXFLAGS = -c -fPIC 
@@ -65,9 +69,12 @@ XISD_OBJS = xISD/XiSD.o xISD/manager.o xISD/FmtReader.o xISD/tools.o xISD/iSDOS_
             xISD/manager_make_folder.o xISD/iterator.o \
             xISD/Formats/IMG/img.o xISD/Formats/FDI/fdi.o xISD/Formats/FDI/filer.o 
 
-.PHONY: all test-speccy release install clean zip zst deb
+.PHONY: all test-speccy release install clean zip zst deb version
 
 all: $(TARGETS)
+
+version:
+	@echo $(VERSION)
 
 test-speccy:
 	python3 tests/speccy/run.py --sanitize $(if $(EXAMPLES),--examples "$(EXAMPLES)")

@@ -3,14 +3,6 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: Package version (empty = VERSION from Makefile)
-        required: false
-        type: string
-      tag:
-        description: Git tag for the release (empty = v<version>)
-        required: false
-        type: string
       prerelease:
         description: Mark as pre-release
         required: false
@@ -33,29 +25,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Install build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends g++ make zip dpkg-dev
 
-      - name: Resolve version and tag
+      - name: Resolve version from latest tag
         id: meta
         run: |
-          if [ -n "${{ inputs.version }}" ]; then
-            VERSION='${{ inputs.version }}'
-          else
-            VERSION="$(sed -n 's/^VERSION=//p' Makefile | head -n1)"
-          fi
+          VERSION="$(make -s version)"
           if [ -z "$VERSION" ]; then
-            echo "Could not determine package version" >&2
+            echo "Could not determine package version from git tags" >&2
             exit 1
           fi
-          if [ -n "${{ inputs.tag }}" ]; then
-            TAG='${{ inputs.tag }}'
-          else
-            TAG="v${VERSION}"
-          fi
+          TAG="v${VERSION}"
           {
             echo "version=${VERSION}"
             echo "tag=${TAG}"
