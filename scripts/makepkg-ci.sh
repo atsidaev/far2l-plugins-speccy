@@ -26,6 +26,6 @@ sudo -u builder env VERSION="$VERSION" bash -lc '
   set -euo pipefail
   sed -i "s/^pkgver=.*/pkgver=${VERSION}/" PKGBUILD
   rm -rf pkg src
-  makepkg -f
+  makepkg -f --nodeps
   test -f "far2l-plugins-speccy-${VERSION}-1-x86_64.pkg.tar.zst"
 '
