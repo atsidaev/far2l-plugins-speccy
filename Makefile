@@ -65,7 +65,7 @@ XISD_OBJS = xISD/XiSD.o xISD/manager.o xISD/FmtReader.o xISD/tools.o xISD/iSDOS_
             xISD/manager_make_folder.o xISD/iterator.o \
             xISD/Formats/IMG/img.o xISD/Formats/FDI/fdi.o xISD/Formats/FDI/filer.o 
 
-.PHONY: all test-speccy release install clean
+.PHONY: all test-speccy release install clean zip zst deb
 
 all: $(TARGETS)
 
@@ -109,14 +109,25 @@ xLook.far-plug-mb: $(SHARED_BASIC_OBJS) $(XLOOK_OBJS)
 
 clean:
 	rm $(SHARED_OBJS) $(XCREATE_OBJS) $(XSCL_OBJS) $(XTRD_OBJS) $(XISD_OBJS) $(XHRIP_OBJS) $(XZXZIP_OBJS) $(XLOOK_OBJS) $(TARGETS) || true
-	rm -rf $(RELEASE) *.deb *.zip || true
+	rm -rf $(RELEASE) pkg src *.deb *.zip *.tar.zst *.pkg.tar.zst || true
 
-# Installation archive
+# Installation archives
 
 zip: far2l-plugins-speccy_$(VERSION)_amd64.zip
 
 far2l-plugins-speccy_$(VERSION)_amd64.zip: release
 	(cd $(RELEASE); zip -r $(PWD)/$@ *)
+
+# Arch/Manjaro package (pacman -U …pkg.tar.zst). Keep pkgver in PKGBUILD in sync with VERSION.
+ARCH_PKG = far2l-plugins-speccy-$(VERSION)-1-x86_64.pkg.tar.zst
+
+zst: $(ARCH_PKG)
+
+$(ARCH_PKG): release PKGBUILD
+	sed -i 's/^pkgver=.*/pkgver=$(VERSION)/' PKGBUILD
+	rm -rf pkg src
+	makepkg -f
+	test -f $@
 
 # Debian deb package build
 

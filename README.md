@@ -33,7 +33,12 @@ You may download prebuild packages from the [Releases](https://github.com/atsida
 sudo dpkg -i far2l-plugins-speccy_0.9_amd64.deb
 ```
 
-If you use other Linux distributions, you could download `far2l-plugins-speccy_<version>_amd64.zip` archive and unzip it to the location of your `far2l` installation. Most likely it is `/usr/lib/far2l/Plugins`. 
+If you are on Arch/Manjaro, get the `far2l-plugins-speccy-<version>-1-x86_64.pkg.tar.zst` package and install it with:
+```
+sudo pacman -U far2l-plugins-speccy-0.9-1-x86_64.pkg.tar.zst
+```
+
+If you use other Linux distributions, you could download `far2l-plugins-speccy_<version>_amd64.zip` and unzip it to the location of your `far2l` installation. Most likely it is `/usr/lib/far2l/Plugins`. 
 
 These packages are built against very small amount of dependencies (libc, libm, libgcc, libstdc++), so they should work for any 64-bit Linux distrubutions. However, if you experience any issues, rebuild them yourself (see the next section).
 
@@ -46,7 +51,7 @@ Then we are ready for compilation.
 git submodule update --init
 ```
 
-Then use `make deb` target to build `deb`-package, or use `make zip` target to build the plugins as simple `zip` archive. See Installation section for instruction for the next steps.
+Then use `make deb` for a Debian package, `make zst` for an Arch/Manjaro package, or `make zip` for a plain plugin archive. See Installation section for the next steps.
 
 Alternative option is to build plugins without packaging them
 

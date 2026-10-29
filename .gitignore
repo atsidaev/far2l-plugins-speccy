@@ -3,4 +3,8 @@
 release
 *.deb
 *.zip
+*.tar.zst
+*.pkg.tar.zst
+pkg/
+src/
 *.d

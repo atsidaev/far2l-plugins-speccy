@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Package version (empty = VERSION from Makefile)
+        required: false
+        type: string
+      tag:
+        description: Git tag for the release (empty = v<version>)
+        required: false
+        type: string
+      prerelease:
+        description: Mark as pre-release
+        required: false
+        type: boolean
+        default: false
+      draft:
+        description: Create as draft release
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends g++ make zip dpkg-dev
+
+      - name: Resolve version and tag
+        id: meta
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            VERSION='${{ inputs.version }}'
+          else
+            VERSION="$(sed -n 's/^VERSION=//p' Makefile | head -n1)"
+          fi
+          if [ -z "$VERSION" ]; then
+            echo "Could not determine package version" >&2
+            exit 1
+          fi
+          if [ -n "${{ inputs.tag }}" ]; then
+            TAG='${{ inputs.tag }}'
+          else
+            TAG="v${VERSION}"
+          fi
+          {
+            echo "version=${VERSION}"
+            echo "tag=${TAG}"
+            echo "zip=far2l-plugins-speccy_${VERSION}_amd64.zip"
+            echo "deb=far2l-plugins-speccy_${VERSION}_amd64.deb"
+            echo "arch=far2l-plugins-speccy-${VERSION}-1-x86_64.pkg.tar.zst"
+          } >> "$GITHUB_OUTPUT"
+          echo "Building ${TAG} (VERSION=${VERSION})"
+
+      - name: Build zip and deb
+        run: make zip deb VERSION="${{ steps.meta.outputs.version }}"
+
+      - name: Build Arch package
+        run: |
+          set -euo pipefail
+          test -d release/usr/lib/far2l/Plugins
+          chmod +x scripts/makepkg-ci.sh
+          docker run --rm \
+            -v "$PWD:$PWD" -w "$PWD" \
+            -e VERSION="${{ steps.meta.outputs.version }}" \
+            archlinux:latest \
+            ./scripts/makepkg-ci.sh
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          args=(release create "${{ steps.meta.outputs.tag }}"
+            --title "${{ steps.meta.outputs.tag }}"
+            --generate-notes
+            --target "${{ github.sha }}"
+            "${{ steps.meta.outputs.zip }}"
+            "${{ steps.meta.outputs.deb }}"
+            "${{ steps.meta.outputs.arch }}")
+          if [ "${{ inputs.prerelease }}" = "true" ]; then
+            args+=(--prerelease)
+          fi
+          if [ "${{ inputs.draft }}" = "true" ]; then
+            args+=(--draft)
+          fi
+          gh "${args[@]}"
