@@ -135,23 +135,8 @@ OkType:
       if(to - cmdLine >= 300) break;
     }
     *to = 0;
-    
-/*    STARTUPINFO sInfo;
-    memset(&sInfo, 0, sizeof(STARTUPINFO));
-    if(fullScreen) sInfo.dwFlags = STARTF_RUNFULLSCREEN;
-    
-    PROCESS_INFORMATION procInfo;
-    if(!CreateProcess(NULL, cmdLine, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &sInfo, &procInfo))
-    {
-      char *msgItems[4];
-      msgItems[0] = getMsg(MxTRDWarning);
-      msgItems[1] = getMsg(MCanNotExec);
-      msgItems[2] = cmdLine;
-      msgItems[3] = getMsg(MOk);
-      messageBox(FMSG_WARNING | FMSG_DOWN, msgItems, sizeof(msgItems)/sizeof(msgItems[0]), 1);
-    }*/
 
-    return TRUE;
+    return FALSE;
   }
   if(((controlState & PKF_SHIFT) && key == VK_F6) ||
      (!(controlState & PKF_ANY) && key == VK_F4) ||
